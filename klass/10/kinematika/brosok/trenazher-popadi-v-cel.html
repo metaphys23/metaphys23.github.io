@@ -1,0 +1,421 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="format-detection" content="telephone=no"><meta name="color-scheme" content="light dark"><meta name="theme-color" content="#F5F6F8" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#101215" media="(prefers-color-scheme: dark)"><meta name="description" content="Попади в цель — интерактивный тренажёр по физике. Откройте в браузере."><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314161A'/%3E%3Cpath d='M5 25 Q14 2 27 25' fill='none' stroke='%23FFD400' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"></head><body><title>Попади в цель</title>
+<style>
+/* Layout: лабораторный стол — слева «миллиметровка» с полётом, справа пульт; на телефоне пульт уходит под график. Жёлтый — только траектория и главное.
+   Telegram: ни одного внешнего файла (шрифты системные), всё крупно под палец, поля ввода 16px (iPhone не зумит), без JS — облегчённая версия в <noscript>. */
+:root{
+  --paper:#F5F6F8; --sheet:#FFFFFF; --ink:#14161A; --ink-2:#555C66; --rule:#DCE0E5;
+  --grid:#E6EAEE; --grid-major:#C9CFD6; --traj:#C89A00; --mark:#FFD400; --mark-soft:#FFF5BF;
+  --vx:#B07D00; --vy:#2F6FA8; --env:#7A5BB5; --target:#C0392B; --ok:#2E7D4F; --ok-soft:#E3F2E8; --bad:#A33A2E; --bad-soft:#F7E4E1;
+  --display:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono","DejaVu Sans Mono",monospace;
+  --ar:16/10;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#101215; --sheet:#181B20; --ink:#ECEEF1; --ink-2:#A3AAB4; --rule:#2B3037;
+  --grid:#1F2328; --grid-major:#323840; --traj:#FFD400; --mark:#FFD400; --mark-soft:#3A3310;
+  --vx:#FFE36B; --vy:#7FB8EE; --env:#B9A2EC; --target:#FF7A6B; --ok:#7FD3A0; --ok-soft:#173226; --bad:#FF9C8F; --bad-soft:#3A1D1D; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#101215; --sheet:#181B20; --ink:#ECEEF1; --ink-2:#A3AAB4; --rule:#2B3037;
+  --grid:#1F2328; --grid-major:#323840; --traj:#FFD400; --mark:#FFD400; --mark-soft:#3A3310;
+  --vx:#FFE36B; --vy:#7FB8EE; --env:#B9A2EC; --target:#FF7A6B; --ok:#7FD3A0; --ok-soft:#173226; --bad:#FF9C8F; --bad-soft:#3A1D1D; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 var(--body);-webkit-tap-highlight-color:transparent;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:max(16px,env(safe-area-inset-top,0px));padding-bottom:max(40px,env(safe-area-inset-bottom,0px))}
+button,input,label{touch-action:manipulation}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:16px}
+h1{font:700 clamp(24px,4vw,36px)/1.15 var(--display);margin:0;text-wrap:balance}
+.sub{color:var(--ink-2);margin:4px 0 0}
+.eyebrow{font:500 11.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{font:600 15px var(--body);min-height:44px;padding:10px 18px;border-radius:999px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--vy);outline-offset:2px}
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+@media (max-width:860px){.lab{grid-template-columns:1fr}}
+.stage{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:10px;min-width:0}
+canvas{display:block;width:100%;aspect-ratio:var(--ar);max-height:72svh;max-width:100%;border-radius:4px;touch-action:manipulation}
+@media (max-width:560px){:root{--ar:4/3}.stage{padding:6px}}
+/* телефон боком: график и пульт рядом, подзаголовок прячем */
+@media (orientation:landscape) and (max-height:520px) and (min-width:640px){.lab{grid-template-columns:minmax(0,1fr) 300px}.sub{display:none}canvas{max-height:78svh}.panel{max-height:88svh;overflow:auto}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink-2);padding:8px 4px 2px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:16px;display:grid;gap:14px;min-width:0}
+.panel h2{font:600 15px var(--display);margin:0}
+.ctl{display:grid;gap:4px}
+.ctl label{display:flex;justify-content:space-between;font-size:15px}
+.ctl output,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;height:36px;margin:0;accent-color:var(--traj);background:transparent;-webkit-appearance:none;appearance:none}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--rule)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-11px;border-radius:50%;background:var(--traj);border:3px solid var(--sheet);box-shadow:0 0 0 1px var(--ink-2)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--rule)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--traj);border:3px solid var(--sheet);box-shadow:0 0 0 1px var(--ink-2)}
+.checks{display:grid;gap:2px;font-size:15px}
+.checks label{display:flex;gap:10px;align-items:center;cursor:pointer;min-height:40px}
+.checks input{width:22px;height:22px;flex:none;accent-color:var(--traj)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button.b{font:600 15px var(--body);min-height:44px;padding:10px 16px;border-radius:8px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
+button.b.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+button.b:disabled{opacity:.45;cursor:not-allowed}
+.read{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14px;border-top:1px solid var(--rule);padding-top:12px}
+.read dt{color:var(--ink-2)} .read dd{margin:0;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.task{display:grid;gap:10px}
+.task p{margin:0}
+.field{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:15px}
+.field input{font:500 17px var(--mono);min-height:44px;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);color:var(--ink);width:100%;min-width:0}
+.msg{font-size:15px;padding:10px 12px;border-radius:8px;display:none}
+.msg.ok{display:block;background:var(--ok-soft);color:var(--ok)} .msg.bad{display:block;background:var(--bad-soft);color:var(--bad)}
+.hint{font-size:14px;background:var(--mark-soft);border-left:3px solid var(--traj);padding:8px 10px;border-radius:0 6px 6px 0}
+.svo{font-size:14px;border:1px solid var(--traj);background:var(--mark-soft);padding:10px 12px;border-radius:6px}
+.svo b{font-weight:600}
+.score{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums}
+.score span b{font-size:18px}
+.f{font-family:var(--mono);font-size:.95em;white-space:nowrap}
+sub,sup{font-size:.72em}
+.foot{font-size:14px;color:var(--ink-2)}
+/* облегчённая версия без JS (просмотр файла в Telegram на iPhone) */
+.warn{background:var(--mark-soft);border:1px solid var(--traj);border-radius:8px;padding:12px 14px;font-size:15px}
+.warn ol{margin:8px 0 0;padding-left:20px}
+.lite svg{display:block;width:100%;height:auto;background:var(--sheet);border:1px solid var(--rule);border-radius:8px}
+.lite svg .g{stroke:var(--grid);stroke-width:.5} .lite svg .gm{stroke:var(--grid-major);stroke-width:.6}
+.lite svg .ax{stroke:var(--ink);stroke-width:1} .lite svg .tl{fill:var(--ink-2);font:8px var(--mono)}
+.lite svg .fan{fill:none;stroke:var(--traj);stroke-width:1.2;opacity:.75} .lite svg .env{fill:none;stroke:var(--env);stroke-width:1.6;stroke-dasharray:5 4}
+.lite svg .tg{fill:none;stroke:var(--target);stroke-width:1.4} .lite svg .tgd{stroke:var(--target);stroke-width:.6;stroke-dasharray:2 2}
+.quiz{display:grid;gap:10px}
+.quiz input{position:absolute;opacity:0;pointer-events:none}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts label{min-height:44px;display:inline-flex;align-items:center;padding:8px 16px;border:1px solid var(--rule);border-radius:999px;background:var(--sheet);font:600 16px var(--mono);cursor:pointer}
+.fb{display:none;font-size:15px;padding:10px 12px;border-radius:8px}
+.fb.ok{background:var(--ok-soft);color:var(--ok)} .fb.bad{background:var(--bad-soft);color:var(--bad)}
+#v1:checked~.q1 label[for=v1],#v2:checked~.q1 label[for=v2],#v3:checked~.q1 label[for=v3],#v4:checked~.q1 label[for=v4],
+#t1:checked~.q2 label[for=t1],#t2:checked~.q2 label[for=t2],#t3:checked~.q2 label[for=t3],#t4:checked~.q2 label[for=t4]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+#v1:checked~.fv1,#v2:checked~.fv2,#v3:checked~.fv3,#v4:checked~.fv4,#t1:checked~.ft1,#t2:checked~.ft2,#t3:checked~.ft3,#t4:checked~.ft4{display:block}
+.quiz .svo{display:none} #v2:checked~#t3:checked~.svo{display:block}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<noscript><style>.app{display:none!important}</style>
+<div class="wrap lite">
+  <header>
+    <div class="eyebrow">физика · 10М1 и 9ФМ · бросок под углом</div>
+    <h1>Попади в цель</h1>
+  </header>
+  <div class="warn"><b>Интерактив здесь не запустился.</b> Встроенный просмотр Telegram на iPhone показывает файл, но не выполняет в нём программы. Полная версия с пультом, задачей и тиром откроется:
+    <ol><li>на компьютере — в Telegram Desktop или на web.telegram.org, щелчком по файлу;</li><li>на Android — в меню файла «Открыть в…» → браузер (Chrome, Яндекс, Firefox).</li></ol>
+    А пока — короткая версия задачи, она работает и здесь.</div>
+  <svg viewBox="0 0 330 200" role="img" aria-label="Траектории с одной скоростью 20 м/с под разными углами, их граница и мишень в точке (24; 7)"><line class="gm" x1="30.0" y1="176.0" x2="30.0" y2="23.0"/><line class="g" x1="43.9" y1="176.0" x2="43.9" y2="23.0"/><line class="g" x1="57.8" y1="176.0" x2="57.8" y2="23.0"/><line class="g" x1="71.7" y1="176.0" x2="71.7" y2="23.0"/><line class="g" x1="85.6" y1="176.0" x2="85.6" y2="23.0"/><line class="gm" x1="99.5" y1="176.0" x2="99.5" y2="23.0"/><line class="g" x1="113.4" y1="176.0" x2="113.4" y2="23.0"/><line class="g" x1="127.3" y1="176.0" x2="127.3" y2="23.0"/><line class="g" x1="141.2" y1="176.0" x2="141.2" y2="23.0"/><line class="g" x1="155.1" y1="176.0" x2="155.1" y2="23.0"/><line class="gm" x1="169.0" y1="176.0" x2="169.0" y2="23.0"/><line class="g" x1="183.0" y1="176.0" x2="183.0" y2="23.0"/><line class="g" x1="196.9" y1="176.0" x2="196.9" y2="23.0"/><line class="g" x1="210.8" y1="176.0" x2="210.8" y2="23.0"/><line class="g" x1="224.7" y1="176.0" x2="224.7" y2="23.0"/><line class="gm" x1="238.6" y1="176.0" x2="238.6" y2="23.0"/><line class="g" x1="252.5" y1="176.0" x2="252.5" y2="23.0"/><line class="g" x1="266.4" y1="176.0" x2="266.4" y2="23.0"/><line class="g" x1="280.3" y1="176.0" x2="280.3" y2="23.0"/><line class="g" x1="294.2" y1="176.0" x2="294.2" y2="23.0"/><line class="gm" x1="308.1" y1="176.0" x2="308.1" y2="23.0"/><line class="g" x1="322.0" y1="176.0" x2="322.0" y2="23.0"/><line class="gm" x1="30.0" y1="176.0" x2="322.0" y2="176.0"/><line class="g" x1="30.0" y1="162.1" x2="322.0" y2="162.1"/><line class="g" x1="30.0" y1="148.2" x2="322.0" y2="148.2"/><line class="g" x1="30.0" y1="134.3" x2="322.0" y2="134.3"/><line class="g" x1="30.0" y1="120.4" x2="322.0" y2="120.4"/><line class="gm" x1="30.0" y1="106.5" x2="322.0" y2="106.5"/><line class="g" x1="30.0" y1="92.6" x2="322.0" y2="92.6"/><line class="g" x1="30.0" y1="78.7" x2="322.0" y2="78.7"/><line class="g" x1="30.0" y1="64.8" x2="322.0" y2="64.8"/><line class="g" x1="30.0" y1="50.9" x2="322.0" y2="50.9"/><line class="gm" x1="30.0" y1="37.0" x2="322.0" y2="37.0"/><line class="g" x1="30.0" y1="23.0" x2="322.0" y2="23.0"/><polyline class="fan" points="30.0,176.0 32.4,175.6 34.8,175.2 37.1,174.8 39.5,174.5 41.9,174.2 44.3,173.9 46.6,173.6 49.0,173.3 51.4,173.1 53.8,172.9 56.2,172.7 58.5,172.5 60.9,172.3 63.3,172.2 65.7,172.1 68.0,172.0 70.4,171.9 72.8,171.8 75.2,171.8 77.6,171.8 79.9,171.8 82.3,171.8 84.7,171.9 87.1,172.0 89.4,172.1 91.8,172.2 94.2,172.3 96.6,172.5 99.0,172.7 101.3,172.9 103.7,173.1 106.1,173.3 108.5,173.6 110.8,173.9 113.2,174.2 115.6,174.5 118.0,174.8 120.4,175.2 122.7,175.6 125.1,176.0"/><polyline class="fan" points="30.0,176.0 34.5,174.4 38.9,172.9 43.4,171.5 47.9,170.1 52.3,168.9 56.8,167.7 61.3,166.6 65.8,165.6 70.2,164.7 74.7,163.8 79.2,163.0 83.6,162.3 88.1,161.7 92.6,161.2 97.0,160.8 101.5,160.4 106.0,160.1 110.4,159.9 114.9,159.8 119.4,159.7 123.8,159.8 128.3,159.9 132.8,160.1 137.3,160.4 141.7,160.8 146.2,161.2 150.7,161.7 155.1,162.3 159.6,163.0 164.1,163.8 168.5,164.7 173.0,165.6 177.5,166.6 181.9,167.7 186.4,168.9 190.9,170.1 195.3,171.5 199.8,172.9 204.3,174.4 208.8,176.0"/><polyline class="fan" points="30.0,176.0 36.0,172.6 42.0,169.4 48.1,166.4 54.1,163.5 60.1,160.8 66.1,158.3 72.1,155.9 78.2,153.8 84.2,151.8 90.2,149.9 96.2,148.3 102.3,146.8 108.3,145.5 114.3,144.4 120.3,143.4 126.3,142.6 132.4,142.0 138.4,141.6 144.4,141.3 150.4,141.2 156.4,141.3 162.5,141.6 168.5,142.0 174.5,142.6 180.5,143.4 186.5,144.4 192.6,145.5 198.6,146.8 204.6,148.3 210.6,149.9 216.6,151.8 222.7,153.8 228.7,155.9 234.7,158.3 240.7,160.8 246.8,163.5 252.8,166.4 258.8,169.4 264.8,172.6 270.8,176.0"/><polyline class="fan" points="30.0,176.0 36.8,170.4 43.7,165.1 50.5,160.1 57.4,155.3 64.2,150.9 71.1,146.7 77.9,142.8 84.8,139.2 91.6,135.9 98.5,132.9 105.3,130.2 112.2,127.7 119.0,125.6 125.9,123.7 132.7,122.1 139.5,120.8 146.4,119.8 153.2,119.1 160.1,118.7 166.9,118.5 173.8,118.7 180.6,119.1 187.5,119.8 194.3,120.8 201.2,122.1 208.0,123.7 214.9,125.6 221.7,127.7 228.6,130.2 235.4,132.9 242.2,135.9 249.1,139.2 255.9,142.8 262.8,146.7 269.6,150.9 276.5,155.3 283.3,160.1 290.2,165.1 297.0,170.4 303.9,176.0"/><polyline class="fan" points="30.0,176.0 36.8,168.0 43.7,160.5 50.5,153.4 57.4,146.6 64.2,140.3 71.1,134.4 77.9,128.9 84.8,123.8 91.6,119.1 98.5,114.8 105.3,110.9 112.2,107.5 119.0,104.4 125.9,101.7 132.7,99.5 139.5,97.7 146.4,96.2 153.2,95.2 160.1,94.6 166.9,94.4 173.8,94.6 180.6,95.2 187.5,96.2 194.3,97.7 201.2,99.5 208.0,101.7 214.9,104.4 221.7,107.5 228.6,110.9 235.4,114.8 242.2,119.1 249.1,123.8 255.9,128.9 262.8,134.4 269.6,140.3 276.5,146.6 283.3,153.4 290.2,160.5 297.0,168.0 303.9,176.0"/><polyline class="fan" points="30.0,176.0 36.0,165.8 42.0,156.2 48.1,147.1 54.1,138.5 60.1,130.4 66.1,122.8 72.1,115.8 78.2,109.3 84.2,103.3 90.2,97.8 96.2,92.8 102.3,88.4 108.3,84.5 114.3,81.1 120.3,78.2 126.3,75.9 132.4,74.1 138.4,72.8 144.4,72.0 150.4,71.7 156.4,72.0 162.5,72.8 168.5,74.1 174.5,75.9 180.5,78.2 186.5,81.1 192.6,84.5 198.6,88.4 204.6,92.8 210.6,97.8 216.6,103.3 222.7,109.3 228.7,115.8 234.7,122.8 240.7,130.4 246.8,138.5 252.8,147.1 258.8,156.2 264.8,165.8 270.8,176.0"/><polyline class="fan" points="30.0,176.0 34.5,164.0 38.9,152.7 43.4,141.9 47.9,131.8 52.3,122.3 56.8,113.4 61.3,105.1 65.8,97.4 70.2,90.4 74.7,83.9 79.2,78.1 83.6,72.9 88.1,68.3 92.6,64.3 97.0,60.9 101.5,58.1 106.0,56.0 110.4,54.4 114.9,53.5 119.4,53.2 123.8,53.5 128.3,54.4 132.8,56.0 137.3,58.1 141.7,60.9 146.2,64.3 150.7,68.3 155.1,72.9 159.6,78.1 164.1,83.9 168.5,90.4 173.0,97.4 177.5,105.1 181.9,113.4 186.4,122.3 190.9,131.8 195.3,141.9 199.8,152.7 204.3,164.0 208.8,176.0"/><polyline class="fan" points="30.0,176.0 32.4,162.9 34.8,150.4 37.1,138.6 39.5,127.5 41.9,117.0 44.3,107.2 46.6,98.1 49.0,89.7 51.4,81.9 53.8,74.9 56.2,68.5 58.5,62.7 60.9,57.7 63.3,53.3 65.7,49.6 68.0,46.5 70.4,44.2 72.8,42.5 75.2,41.5 77.6,41.1 79.9,41.5 82.3,42.5 84.7,44.2 87.1,46.5 89.4,49.6 91.8,53.3 94.2,57.7 96.6,62.7 99.0,68.5 101.3,74.9 103.7,81.9 106.1,89.7 108.5,98.1 110.8,107.2 113.2,117.0 115.6,127.5 118.0,138.6 120.4,150.4 122.7,162.9 125.1,176.0"/><polyline class="env" points="30.0,37.0 34.6,37.0 39.3,37.1 43.9,37.3 48.5,37.6 53.2,37.9 57.8,38.3 62.4,38.8 67.1,39.4 71.7,40.1 76.3,40.8 81.0,41.6 85.6,42.5 90.3,43.5 94.9,44.5 99.5,45.6 104.2,46.8 108.8,48.1 113.4,49.5 118.1,50.9 122.7,52.4 127.3,54.0 132.0,55.6 136.6,57.4 141.2,59.2 145.9,61.1 150.5,63.1 155.1,65.1 159.8,67.2 164.4,69.4 169.0,71.7 173.7,74.1 178.3,76.5 183.0,79.0 187.6,81.6 192.2,84.3 196.9,87.0 201.5,89.8 206.1,92.7 210.8,95.7 215.4,98.8 220.0,101.9 224.7,105.1 229.3,108.4 233.9,111.7 238.6,115.2 243.2,118.7 247.8,122.3 252.5,125.9 257.1,129.7 261.7,133.5 266.4,137.4 271.0,141.4 275.7,145.4 280.3,149.6 284.9,153.8 289.6,158.1 294.2,162.4 298.8,166.9 303.5,171.4 308.1,176.0"/><line class="ax" x1="30.0" y1="176.0" x2="322.0" y2="176.0"/><line class="ax" x1="30.0" y1="176.0" x2="30.0" y2="10.0"/><text class="tl" x="99.5" y="187.0" text-anchor="middle">10</text><text class="tl" x="169.0" y="187.0" text-anchor="middle">20</text><text class="tl" x="238.6" y="187.0" text-anchor="middle">30</text><text class="tl" x="26.0" y="109.5" text-anchor="end">10</text><text class="tl" x="26.0" y="40.0" text-anchor="end">20</text><text class="tl" x="322.0" y="187.0" text-anchor="end">x, м</text><line class="tgd" x1="196.9" y1="127.3" x2="196.9" y2="176.0"/><circle class="tg" cx="196.9" cy="127.3" r="6"/><circle class="tg" cx="196.9" cy="127.3" r="3"/></svg>
+  <p class="foot">Все траектории с одной скоростью v = 20 м/с через каждые 10°. Ни одна не выходит за штриховую границу — это парабола безопасности. Красная мишень: s = 24 м, h = 7 м.</p>
+  <div class="quiz">
+    <p>Мишень висит на высоте <b>h = 7 м</b> на расстоянии <b>s = 24 м</b> по горизонтали (бросаем с земли, g = 10 м/с²). С какой <b>наименьшей</b> скоростью можно попасть в мишень? Под каким углом нужно бросать? Решите на бумаге, потом выберите ответ.</p>
+    <input type="radio" name="qv" id="v1"><input type="radio" name="qv" id="v2"><input type="radio" name="qv" id="v3"><input type="radio" name="qv" id="v4">
+    <input type="radio" name="qt" id="t1"><input type="radio" name="qt" id="t2"><input type="radio" name="qt" id="t3"><input type="radio" name="qt" id="t4">
+    <div class="q1"><b>v<sub>min</sub>, м/с:</b><div class="opts"><label for="v1">15,0</label><label for="v2">17,9</label><label for="v3">20,0</label><label for="v4">25,0</label></div></div>
+    <div class="fb bad fv1">Мало: мишень окажется за параболой безопасности этой скорости — не долетит ни под каким углом.</div>
+    <div class="fb ok fv2">Верно: v² = g(h + r), где r = √(s² + h²) = 25 м, v = √320 = 8√5 ≈ 17,9 м/с.</div>
+    <div class="fb bad fv3">Долетит, но это не наименьшая скорость: при 20 м/с подходят сразу два угла. Ищите скорость, при которой угол один.</div>
+    <div class="fb bad fv4">Это расстояние до мишени r = 25 м, а не скорость. Подставьте его в v² = g(h + r).</div>
+    <div class="q2"><b>tg α:</b><div class="opts"><label for="t1">3/4</label><label for="t2">1</label><label for="t3">4/3</label><label for="t4">7/24</label></div></div>
+    <div class="fb bad ft1">Это ctg: проверьте, что делите на что. tg α = (h + r)/s.</div>
+    <div class="fb bad ft2">45° — ответ для мишени на уровне земли. Здесь мишень выше, угол больше.</div>
+    <div class="fb ok ft3">Верно: tg α = (h + r)/s = 32/24 = 4/3, α ≈ 53,1°.</div>
+    <div class="fb bad ft4">7/24 — это наклон направления на мишень (h/s). Бросать нужно круче.</div>
+    <div class="svo"><b>Свойство.</b> При наименьшей скорости мишень лежит на параболе безопасности, а направление броска делит пополам угол между вертикалью и направлением на мишень: α = 45° + θ/2, где tg θ = h/s.</div>
+  </div>
+</div>
+</noscript>
+
+<div class="wrap app">
+  <header>
+    <div class="eyebrow">физика · 10М1 и 9ФМ · бросок под углом</div>
+    <h1>Попади в цель</h1>
+    <p class="sub">Траектория через вершину и наименьшая скорость броска. Сопротивления воздуха нет, g = 10 м/с², клетка — 1 м.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Режим">
+    <button class="tab" role="tab" id="t-ex" aria-selected="true" data-mode="explore">Исследовать</button>
+    <button class="tab" role="tab" id="t-task" aria-selected="false" data-mode="task">Задача</button>
+    <button class="tab" role="tab" id="t-game" aria-selected="false" data-mode="game">Тир</button>
+  </div>
+
+  <div class="lab">
+    <div class="stage">
+      <canvas id="cv" width="960" height="600" aria-label="График полёта: ось x — расстояние, ось y — высота, в метрах"></canvas>
+      <div class="legend" id="legend">
+        <span><i style="background:var(--traj)"></i>траектория</span>
+        <span><i style="background:var(--env)"></i>парабола безопасности</span>
+        <span><i style="background:var(--vx)"></i>v<sub>x</sub></span>
+        <span><i style="background:var(--vy)"></i>v<sub>y</sub></span>
+        <span><i style="background:var(--target)"></i>мишень</span>
+      </div>
+    </div>
+
+    <aside class="panel" id="panel">
+      <!-- Исследовать -->
+      <section id="p-explore" class="task">
+        <h2>Пульт</h2>
+        <div class="ctl"><label for="v"><span>Скорость v<sub>0</sub></span> <output id="vO" class="num"></output></label><input id="v" type="range" min="5" max="30" step="0.5" value="18"></div>
+        <div class="ctl"><label for="a"><span>Угол α</span> <output id="aO" class="num"></output></label><input id="a" type="range" min="5" max="85" step="1" value="50"></div>
+        <div class="ctl"><label for="h0"><span>Высота броска y<sub>0</sub></span> <output id="h0O" class="num"></output></label><input id="h0" type="range" min="0" max="10" step="0.5" value="0"></div>
+        <div class="checks">
+          <label><input type="checkbox" id="cEnv"> парабола безопасности для этой скорости</label>
+          <label><input type="checkbox" id="cFan"> веер траекторий через 5°</label>
+          <label><input type="checkbox" id="cVec" checked> векторы скорости в полёте</label>
+        </div>
+        <div class="btns"><button class="b" id="go">Пуск</button><button class="b ghost" id="stop">Стоп</button></div>
+        <dl class="read">
+          <dt>Вершина (a; Y)</dt><dd id="rV"></dd>
+          <dt>k = g / (2v<sub>x</sub>²)</dt><dd id="rK"></dd>
+          <dt>Время полёта</dt><dd id="rT"></dd>
+          <dt>Дальность L</dt><dd id="rL"></dd>
+        </dl>
+        <p class="foot">Попробуйте: найдите два угла с одинаковой дальностью. Включите веер — где проходит его граница?</p>
+      </section>
+
+      <!-- Задача -->
+      <section id="p-task" class="task" hidden>
+        <h2>Задача</h2>
+        <p>Мишень висит на высоте <b>h = 7 м</b> на расстоянии <b>s = 24 м</b> по горизонтали от точки броска (бросаем с земли). С какой <b>наименьшей</b> скоростью можно попасть в мишень? Под каким углом к горизонту нужно бросать?</p>
+        <div class="field"><label for="ansV">v<sub>min</sub> =</label><input id="ansV" inputmode="decimal" enterkeyhint="next" placeholder="например, 17,5" autocomplete="off"><span>м/с</span></div>
+        <div class="field"><label for="ansT">tg α =</label><input id="ansT" inputmode="decimal" enterkeyhint="done" placeholder="или угол в градусах" autocomplete="off"><span></span></div>
+        <div class="btns"><button class="b" id="check">Проверить</button><button class="b ghost" id="hintBtn">Подсказка (0/3)</button></div>
+        <div class="msg" id="msg" role="status" aria-live="polite"></div>
+        <div id="hints" class="task"></div>
+        <div class="svo" id="svo" hidden><b>Свойство.</b> При наименьшей скорости мишень лежит на параболе безопасности, а направление броска делит пополам угол между вертикалью и направлением на мишень: α = 45° + θ/2, где tg θ = h/s.</div>
+      </section>
+
+      <!-- Тир -->
+      <section id="p-game" class="task" hidden>
+        <h2>Тир</h2>
+        <p id="gText"></p>
+        <div class="field"><label for="gA">α =</label><input id="gA" inputmode="decimal" enterkeyhint="go" placeholder="угол, °" autocomplete="off"><span>°</span></div>
+        <div class="btns"><button class="b" id="fire">Огонь</button><button class="b ghost" id="never">Не долетит</button><button class="b ghost" id="next">Новая мишень</button></div>
+        <div class="msg" id="gMsg" role="status" aria-live="polite"></div>
+        <div class="score"><span>попаданий <b id="sHit">0</b></span><span>выстрелов <b id="sShot">0</b></span><span>серия <b id="sStreak">0</b></span><span>рекорд <b id="sBest">0</b></span></div>
+        <p class="foot">Сначала решите на бумаге: достижима ли мишень при этой скорости? Если да — у задачи обычно два угла.</p>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function(){
+  const G = 10, RAD = Math.PI/180;
+  const $ = id => document.getElementById(id);
+  const cv = $('cv'), ctx = cv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let C = {}, U = 1;
+  function resize(){ const dpr = Math.min(window.devicePixelRatio || 1, 3), w = Math.max(260, cv.clientWidth || 640), h = Math.max(160, cv.clientHeight || w*0.625);
+    const W = Math.round(w*dpr), H = Math.round(h*dpr); if (cv.width !== W) cv.width = W; if (cv.height !== H) cv.height = H;
+    U = dpr * (w < 560 ? 1.05 : Math.max(0.85, Math.min(1.15, w/700))); }
+  resize();
+  new ResizeObserver(() => { const ow = cv.width, oh = cv.height; resize(); if (cv.width !== ow || cv.height !== oh) draw(); }).observe(cv);
+  function readColors(){ const s = getComputedStyle(document.documentElement);
+    ['sheet','ink','ink-2','grid','grid-major','traj','mark','vx','vy','env','target','ok','bad'].forEach(k => C[k] = s.getPropertyValue('--'+k).trim()); }
+  readColors();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); draw(); });
+  new MutationObserver(() => { readColors(); draw(); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+
+  const fmt = (x, d=1) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d).replace('.', ',');
+  const parse = s => { if (s == null) return NaN; s = String(s).trim().replace(',', '.').replace(/\s+/g,'');
+    const m = s.match(/^(\d*\.?\d+)\/(\d*\.?\d+)$/); if (m) return parseFloat(m[1])/parseFloat(m[2]); return parseFloat(s); };
+
+  // ---------- состояние
+  const S = { mode:'explore', v:18, a:50, h0:0, env:false, fan:false, vec:true, t:null, anim:null,
+              target:null, taskSolved:false, hintsShown:0, game:null, shot:null, score:{hit:0, shot:0, streak:0} };
+
+  // траектория: x(t), y(t)
+  const traj = (v, a, h0) => { const vx = v*Math.cos(a*RAD), vy = v*Math.sin(a*RAD);
+    const T = (vy + Math.sqrt(vy*vy + 2*G*h0))/G; return {vx, vy, T, h0,
+      x:t => vx*t, y:t => h0 + vy*t - G*t*t/2, vyt:t => vy - G*t,
+      a: vx*vy/G, Y: h0 + vy*vy/(2*G), L: vx*T, k: G/(2*vx*vx)}; };
+  const envelope = (v, h0, x) => h0 + v*v/(2*G) - G*x*x/(2*v*v);
+
+  // ---------- геометрия холста (метры в одном масштабе по обеим осям)
+  let view = {W:40, H:25, sc:30, ox:44, oy:0};
+  function fit(needW, needH){
+    const pad = {l:34*U, r:10*U, t:10*U, b:26*U};
+    const cw = cv.width - pad.l - pad.r, ch = cv.height - pad.t - pad.b;
+    const W = Math.max(needW, needH*cw/ch), sc = cw/W, H = ch/sc;
+    view = {W, H, sc, ox:pad.l, oy:cv.height - pad.b, pad};
+  }
+  const X = x => view.ox + x*view.sc, Y = y => view.oy - y*view.sc;
+
+  function grid(){
+    ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, cv.width, cv.height);
+    const step = view.sc > 14*U ? 1 : (view.sc > 6*U ? 2 : 5);
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= view.W + 0.01; x += step){ ctx.strokeStyle = (Math.round(x) % 5 === 0) ? C['grid-major'] : C.grid;
+      ctx.beginPath(); ctx.moveTo(X(x)+.5, Y(0)); ctx.lineTo(X(x)+.5, Y(view.H)); ctx.stroke(); }
+    for (let y = 0; y <= view.H + 0.01; y += step){ ctx.strokeStyle = (Math.round(y) % 5 === 0) ? C['grid-major'] : C.grid;
+      ctx.beginPath(); ctx.moveTo(X(0), Y(y)+.5); ctx.lineTo(X(view.W), Y(y)+.5); ctx.stroke(); }
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5*U; ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(view.W), Y(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(0), Y(view.H)); ctx.stroke();
+    ctx.fillStyle = C['ink-2']; ctx.font = (11*U) + 'px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    const lab = view.W > 60 ? 10 : 5;
+    for (let x = lab; X(x) < X(view.W) - 46*U; x += lab) ctx.fillText(String(x), X(x), Y(0) + 4*U);
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (let y = lab; y <= view.H - 1; y += lab) ctx.fillText(String(y), X(0) - 5*U, Y(y));
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('x, м', X(view.W) - 34*U, Y(0) + 4*U);
+    ctx.textBaseline = 'top'; ctx.fillText('y, м', X(0) + 6*U, Y(view.H) + 2*U);
+  }
+  function path(fx, fy, t0, t1, color, w, dash){
+    ctx.strokeStyle = color; ctx.lineWidth = w*U*0.6; ctx.setLineDash((dash || []).map(d => d*U*0.6)); ctx.beginPath();
+    const n = 160; for (let i = 0; i <= n; i++){ const t = t0 + (t1 - t0)*i/n, px = X(fx(t)), py = Y(fy(t)); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+  function arrow(x0, y0, dx, dy, color){
+    const x1 = x0 + dx, y1 = y0 + dy, L = Math.hypot(dx, dy); if (L < 3*U) return;
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2.4*U;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    const ang = Math.atan2(dy, dx), hl = Math.min(10*U, L*0.4);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 - hl*Math.cos(ang - .45), y1 - hl*Math.sin(ang - .45)); ctx.lineTo(x1 - hl*Math.cos(ang + .45), y1 - hl*Math.sin(ang + .45)); ctx.closePath(); ctx.fill();
+  }
+  function dot(x, y, r, color, ring){ r *= U*0.6; ctx.beginPath(); ctx.arc(X(x), Y(y), r, 0, 2*Math.PI); ctx.fillStyle = color; ctx.fill();
+    if (ring){ ctx.lineWidth = 1.8*U; ctx.strokeStyle = C.ink; ctx.stroke(); } }
+  function targetMark(s, h){ const px = X(s), py = Y(h); ctx.strokeStyle = C.target; ctx.lineWidth = 2*U;
+    [12*U, 7*U].forEach(r => { ctx.beginPath(); ctx.arc(px, py, r, 0, 2*Math.PI); ctx.stroke(); }); dot(s, h, 4, C.target);
+    ctx.setLineDash([4*U, 4*U]); ctx.lineWidth = 1*U; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, Y(0)); ctx.stroke(); ctx.setLineDash([]); }
+  function label(text, x, y, color, align){ ctx.fillStyle = color; ctx.font = '600 ' + (13*U) + 'px "Golos Text", system-ui, sans-serif';
+    ctx.textAlign = align || 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(text, X(x), Y(y) - 7*U); }
+
+  // ---------- отрисовка
+  function draw(){
+    const tr = traj(S.v, S.a, S.h0);
+    let needW = 40, needH = 16;
+    if (S.mode === 'explore'){ needW = Math.max(needW, tr.L*1.08 + 1, S.env ? Math.sqrt((S.v*S.v/G)*(S.v*S.v/G + 2*S.h0))*1.05 : 0); needH = Math.max(needH, tr.Y*1.12 + 1, (S.env || S.fan) ? (S.h0 + S.v*S.v/(2*G))*1.08 : 0);
+      if (S.fan) needW = Math.max(needW, Math.sqrt((S.v*S.v/G)*(S.v*S.v/G + 2*S.h0))*1.05); }
+    if (S.mode === 'task'){ needW = 34; needH = 20; }
+    if (S.mode === 'game' && S.game){ needW = Math.max(40, S.game.s + 6); needH = Math.max(16, S.game.v*S.game.v/(2*G)*1.05); }
+    fit(needW, needH); grid();
+
+    if (S.mode === 'explore'){
+      if (S.fan){ for (let a = 5; a <= 85; a += 5){ const f = traj(S.v, a, S.h0); path(f.x, f.y, 0, f.T, C['grid-major'], 1.5); } }
+      if (S.env){ const xm = Math.sqrt((S.v*S.v/G)*(S.v*S.v/G + 2*S.h0)); path(x => x, x => envelope(S.v, S.h0, x), 0, xm, C.env, 3, [10, 8]); }
+      drawFlight(tr, true);
+    }
+    if (S.mode === 'task'){
+      const s = 24, h = 7; targetMark(s, h); label('мишень (24; 7)', s, h + 0.6, C.target);
+      if (S.taskSolved){ const v = Math.sqrt(320), a = Math.atan(4/3)/RAD;
+        path(x => x, x => envelope(v, 0, x), 0, Math.sqrt(v*v/G*v*v/G), C.env, 3, [10, 8]);
+        const f = traj(v, a, 0); drawFlight(f, false);
+        ctx.strokeStyle = C['ink-2']; ctx.lineWidth = 1*U; ctx.setLineDash([3*U, 4*U]);
+        ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(s), Y(h)); ctx.stroke(); ctx.setLineDash([]);
+      } else if (S.shot){ drawFlight(S.shot, false); }
+    }
+    if (S.mode === 'game' && S.game){
+      const g = S.game; targetMark(g.s, g.h); label('(' + g.s + '; ' + g.h + ')', g.s, g.h + 0.6, C.target);
+      if (S.shot) drawFlight(S.shot, false);
+    }
+  }
+  function drawFlight(tr, showVertex){
+    const tNow = (S.t == null) ? tr.T : Math.min(S.t, tr.T);
+    path(tr.x, tr.y, 0, tNow, C.traj, 4);
+    if (showVertex && tr.vy > 0){ dot(tr.a, tr.Y, 6, C.mark, true); label('(' + fmt(tr.a) + '; ' + fmt(tr.Y) + ')', tr.a, tr.Y, C.ink); }
+    const x = tr.x(tNow), y = tr.y(tNow);
+    if (S.vec && S.mode === 'explore'){ const k = view.sc*0.32;
+      arrow(X(x), Y(y), tr.vx*k, 0, C.vx); arrow(X(x), Y(y), 0, -tr.vyt(tNow)*k, C.vy);
+      arrow(X(x), Y(y), tr.vx*k, -tr.vyt(tNow)*k, C.ink); }
+    dot(x, y, 9, C.sheet, true);
+  }
+
+  // ---------- анимация полёта
+  const stage = document.querySelector('.stage');
+  function showStage(){ if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    const r = stage.getBoundingClientRect(); if (r.top < 0 || r.bottom > innerHeight) stage.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'}); }
+  const buzz = ms => { try { if (!reduce && navigator.vibrate) navigator.vibrate(ms); } catch(e){} };
+  function launch(tr, done){
+    showStage();
+    cancelAnimationFrame(S.anim); if (reduce){ S.t = null; draw(); done && done(); return; }
+    const t0 = performance.now(), speed = 1.4;
+    const step = now => { S.t = (now - t0)/1000*speed; draw(); if (S.t < tr.T) S.anim = requestAnimationFrame(step); else { S.t = null; draw(); done && done(); } };
+    S.anim = requestAnimationFrame(step);
+  }
+
+  // ---------- Исследовать
+  function syncExplore(){
+    S.v = +$('v').value; S.a = +$('a').value; S.h0 = +$('h0').value;
+    S.env = $('cEnv').checked; S.fan = $('cFan').checked; S.vec = $('cVec').checked;
+    $('vO').textContent = fmt(S.v) + ' м/с'; $('aO').textContent = S.a + '°'; $('h0O').textContent = fmt(S.h0) + ' м';
+    const tr = traj(S.v, S.a, S.h0);
+    $('rV').textContent = '(' + fmt(tr.a) + '; ' + fmt(tr.Y) + ') м'; $('rK').textContent = fmt(tr.k, 4) + ' 1/м';
+    $('rT').textContent = fmt(tr.T, 2) + ' с'; $('rL').textContent = fmt(tr.L) + ' м';
+    if (S.anim == null || S.t == null) draw();
+  }
+  ['v','a','h0','cEnv','cFan','cVec'].forEach(id => $(id).addEventListener('input', () => { cancelAnimationFrame(S.anim); S.anim = null; S.t = null; syncExplore(); }));
+  $('go').addEventListener('click', () => launch(traj(S.v, S.a, S.h0)));
+  $('stop').addEventListener('click', () => { cancelAnimationFrame(S.anim); S.anim = null; S.t = null; draw(); });
+
+  // ---------- Задача (v_min = √320 = 8√5 ≈ 17,9 м/с; tg α = 4/3)
+  const HINTS = [
+    'Представьте все траектории с одной и той же скоростью v. Их общая граница — парабола безопасности. При наименьшей скорости мишень лежит ровно на этой границе: быстрее можно, медленнее — уже нет.',
+    'Уравнение границы: y = v²/(2g) − g·x²/(2v²). Подставьте x = s, y = h и решите относительно v² — получится квадратное уравнение.',
+    'v⁴ − 2ghv² − g²s² = 0, откуда v² = g(h + r), где r = √(s² + h²) — расстояние до мишени. Здесь r = 25 м. А угол: tg α = (h + r)/s.'
+  ];
+  $('hintBtn').addEventListener('click', () => { if (S.hintsShown >= 3) return; const d = document.createElement('div'); d.className = 'hint';
+    d.textContent = (S.hintsShown + 1) + '. ' + HINTS[S.hintsShown]; $('hints').appendChild(d); S.hintsShown++;
+    $('hintBtn').textContent = 'Подсказка (' + S.hintsShown + '/3)'; if (S.hintsShown >= 3) $('hintBtn').disabled = true; });
+  $('check').addEventListener('click', () => {
+    const v = parse($('ansV').value), tRaw = parse($('ansT').value), m = $('msg');
+    const vTrue = Math.sqrt(320), tTrue = 4/3;
+    let tg = tRaw; if (tRaw > 5 && tRaw < 90) tg = Math.tan(tRaw*RAD);
+    const vOk = Math.abs(v - vTrue) <= 0.15, tOk = Math.abs(tg - tTrue) <= 0.03;
+    m.className = 'msg';
+    if (isNaN(v)){ m.className = 'msg bad'; m.textContent = 'Введите число в поле v_min (можно с запятой).'; return; }
+    if (vOk && tOk){ S.taskSolved = true; m.className = 'msg ok'; m.textContent = 'Верно: v_min = 8√5 ≈ 17,9 м/с, tg α = 4/3 (α ≈ 53,1°). Смотрите: траектория касается параболы безопасности в мишени.';
+      $('svo').hidden = false; S.shot = null; launch(traj(vTrue, Math.atan(tTrue)/RAD, 0)); return; }
+    S.shot = traj(isNaN(v) ? 15 : v, isNaN(tg) ? 45 : Math.atan(tg)/RAD, 0);
+    const yAt = S.shot.vy/S.shot.vx*24 - G*24*24/(2*S.shot.vx*S.shot.vx);
+    m.className = 'msg bad';
+    if (vOk && !tOk) m.textContent = 'Скорость верная, угол — нет. При этой скорости мяч пролетит над точкой x = 24 м на высоте ' + fmt(yAt) + ' м.';
+    else if (v < vTrue - 0.15) m.textContent = 'С такой скоростью до мишени не достать ни под каким углом — проверьте, лежит ли мишень внутри параболы безопасности.';
+    else m.textContent = 'С такой скоростью попасть можно, но она не наименьшая. Ищите скорость, при которой подходящий угол только один.';
+    launch(S.shot);
+  });
+
+  // ---------- Тир
+  const rnd = (a, b) => a + Math.floor(Math.random()*(b - a + 1));
+  function newTarget(){
+    const vs = [12, 14, 15, 16, 18, 20]; const v = vs[rnd(0, vs.length - 1)];
+    const s = rnd(8, 34), h = rnd(0, 12), r = Math.hypot(s, h);
+    S.game = {v, s, h, reach: v*v >= G*(h + r)}; S.shot = null; $('gA').value = ''; $('gMsg').className = 'msg';
+    $('gText').innerHTML = 'Пушка стреляет со скоростью <b>v = ' + v + ' м/с</b>. Мишень: <b>s = ' + s + ' м</b>, <b>h = ' + h + ' м</b>. Под каким углом стрелять? Если не долетит ни под каким — жмите «Не долетит».';
+    draw();
+  }
+  let best = 0; try { best = +localStorage.getItem('popadi.best') || 0; } catch(e){}
+  $('sBest').textContent = best;
+  function score(hit){ S.score.shot++; if (hit){ S.score.hit++; S.score.streak++; buzz(40); } else S.score.streak = 0;
+    if (S.score.streak > best){ best = S.score.streak; try { localStorage.setItem('popadi.best', String(best)); } catch(e){} }
+    $('sHit').textContent = S.score.hit; $('sShot').textContent = S.score.shot; $('sStreak').textContent = S.score.streak; $('sBest').textContent = best; }
+  function anglesFor(g){ const v2 = g.v*g.v, D = v2*v2 - G*(G*g.s*g.s + 2*g.h*v2); if (D < 0) return [];
+    return [Math.atan((v2 - Math.sqrt(D))/(G*g.s))/RAD, Math.atan((v2 + Math.sqrt(D))/(G*g.s))/RAD]; }
+  $('fire').addEventListener('click', () => { const g = S.game, a = parse($('gA').value), m = $('gMsg');
+    if (isNaN(a) || a <= 0 || a >= 90){ m.className = 'msg bad'; m.textContent = 'Введите угол от 0 до 90°.'; return; }
+    S.shot = traj(g.v, a, 0); const vx = S.shot.vx, yAt = S.shot.vy/vx*g.s - G*g.s*g.s/(2*vx*vx);
+    const hit = Math.abs(yAt - g.h) <= 0.6;
+    launch(S.shot, () => { score(hit); const as = anglesFor(g);
+      m.className = hit ? 'msg ok' : 'msg bad';
+      m.textContent = hit ? 'Попадание! Подходят углы ≈ ' + as.map(x => fmt(x)).join('° и ') + '°.'
+        : (g.reach ? 'Мимо: на x = ' + g.s + ' м мяч был на высоте ' + fmt(yAt) + ' м. Мишень достижима — пересчитайте.'
+                   : 'Эта мишень вообще недостижима при v = ' + g.v + ' м/с: нужно v² ≥ g(h + r).'); }); });
+  $('never').addEventListener('click', () => { const g = S.game, m = $('gMsg'); const r = Math.hypot(g.s, g.h);
+    score(!g.reach); m.className = !g.reach ? 'msg ok' : 'msg bad';
+    m.textContent = !g.reach ? 'Верно: v² = ' + g.v*g.v + ' < g(h + r) = ' + fmt(G*(g.h + r)) + ' — мишень за параболой безопасности.'
+      : 'Долетит: v² = ' + g.v*g.v + ' ≥ g(h + r) = ' + fmt(G*(g.h + r)) + '. Подходят углы ≈ ' + anglesFor(g).map(x => fmt(x)).join('° и ') + '°.'; });
+  $('next').addEventListener('click', newTarget);
+  $('ansV').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); $('ansT').focus(); } });
+  $('ansT').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); $('check').click(); } });
+  $('gA').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); $('fire').click(); } });
+
+  // ---------- вкладки
+  document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+    S.mode = b.dataset.mode; cancelAnimationFrame(S.anim); S.anim = null; S.t = null; S.shot = null;
+    $('p-explore').hidden = S.mode !== 'explore'; $('p-task').hidden = S.mode !== 'task'; $('p-game').hidden = S.mode !== 'game';
+    if (S.mode === 'game' && !S.game) newTarget(); else draw();
+  }));
+
+  syncExplore();
+})();
+</script>
+</body></html>

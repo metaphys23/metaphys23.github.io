@@ -1,0 +1,436 @@
+{
+ "_note": "Один материал — одна запись; классы, темы и экзамены — теги. status: otkryto (в оглавлении) · klass (видно на странице класса и в «Задано») · proba (только по ссылке). Проверка: python3 tools/build.py --check",
+ "items": [
+  {
+   "id": "p10-brosok-vershina",
+   "title": "Практикум: траектория через вершину, 15 задач",
+   "kind": "pdf",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": "Бросок в поле тяжести",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/brosok/praktikum-traektoriya-cherez-vershinu.pdf",
+   "desc": "",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "t10-popadi",
+   "title": "Тренажёр «Попади в цель»: бросок через вершину",
+   "kind": "trenazher",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": "Бросок в поле тяжести",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/brosok/trenazher-popadi-v-cel.html",
+   "desc": "Парабола безопасности, наименьшая скорость, тир.",
+   "status": "otkryto",
+   "level": "star",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "p10-otskoki",
+   "title": "Практикум: отскоки и углы между скоростями",
+   "kind": "pdf",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": "Бросок в поле тяжести",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/brosok/praktikum-otskoki-ugly-mezhdu-skorostyami.pdf",
+   "desc": "",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "u10-fishki-broska",
+   "title": "Фишки броска: подробные доказательства",
+   "kind": "pdf",
+   "section": "uchebnik",
+   "topic": "кинематика",
+   "sub": "Бросок в поле тяжести",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/brosok/fishki-broska-dokazatelstva.pdf",
+   "desc": "",
+   "status": "otkryto",
+   "level": "star",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "p10-polusfera",
+   "title": "Переброска через полусферу: разные способы",
+   "kind": "pdf",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": "Бросок в поле тяжести",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/brosok/perebroska-cherez-polusferu.pdf",
+   "desc": "",
+   "status": "otkryto",
+   "level": "star",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "sr10-vershina-demo",
+   "title": "СР «Вершина, цель, переброски» — ДЕМО",
+   "kind": "pdf",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": "Бросок в поле тяжести",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/brosok/sr-vershina-cel-perebroski-demo.pdf",
+   "desc": "",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "kr10-kinematika-demo",
+   "title": "КР по кинематике — ДЕМО",
+   "kind": "pdf",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": "Бросок в поле тяжести",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/brosok/kr-kinematika-demo.pdf",
+   "desc": "",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "p10-perepisyvanie",
+   "title": "Подготовка к переписыванию КР, 30 задач",
+   "kind": "pdf",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": "Бросок в поле тяжести",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/brosok/podgotovka-k-perepisyvaniyu-kr.pdf",
+   "desc": "",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "u10-perehody-so",
+   "title": "Переходы между системами отсчёта",
+   "kind": "pdf",
+   "section": "uchebnik",
+   "topic": "кинематика",
+   "sub": "Относительность движения",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/otnositelnost/perehody-mezhdu-so.pdf",
+   "desc": "",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "p10-stenka",
+   "title": "Отскоки от движущейся стенки: ЗСС по шагам",
+   "kind": "pdf",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": "Относительность движения",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/otnositelnost/otskoki-ot-dvizhushcheysya-stenki.pdf",
+   "desc": "",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "p10-proizvodnaya-1",
+   "title": "Производная: задания 1",
+   "kind": "pdf",
+   "section": "praktikum",
+   "topic": "производная",
+   "sub": null,
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/mat-apparat/proizvodnaya-zadaniya-1.pdf",
+   "desc": "",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "t9-slozhenie-sil",
+   "title": "Сложение сил: проекции",
+   "kind": "trenazher",
+   "section": "praktikum",
+   "topic": "динамика",
+   "sub": "Сложение сил",
+   "classes": [
+    9
+   ],
+   "url": "/fizika-trenazhery/slozhenie-sil.html",
+   "desc": "Равнодействующая на прямой и на плоскости через проекции.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-04"
+  },
+  {
+   "id": "oge-kin-t1",
+   "title": "ОГЭ · Кинематика · тренажёр по темам",
+   "kind": "t1",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": null,
+   "classes": [
+    9
+   ],
+   "url": "/fizika-trenazhery/exam.html?t=oge-kin-t1",
+   "desc": "16 заданий формата ОГЭ, проверка по кнопке.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-04",
+   "exam": {
+    "oge": []
+   },
+   "test": "oge-kin-t1"
+  },
+  {
+   "id": "oge-kin-t2",
+   "title": "ОГЭ · Кинематика · комплексный тест",
+   "kind": "t2",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": null,
+   "classes": [
+    9
+   ],
+   "url": "/fizika-trenazhery/exam.html?t=oge-kin-t2",
+   "desc": "16 заданий, 29 баллов, 5 попыток.",
+   "status": "klass",
+   "level": "baza",
+   "added": "2026-11-04",
+   "exam": {
+    "oge": []
+   },
+   "test": "oge-kin-t2"
+  },
+  {
+   "id": "i-shim",
+   "title": "ШИМ: скважность, среднее напряжение, яркость",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "arduino",
+   "sub": "Arduino: выходы",
+   "classes": [
+    8,
+    9,
+    10,
+    11
+   ],
+   "url": "/fizika-trenazhery/inzh-shim.html",
+   "desc": "analogWrite 0–255, осциллограмма, среднее напряжение.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-05"
+  },
+  {
+   "id": "i-svetodiod",
+   "title": "Светодиод и резистор: закон Ома в схеме",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "электроника",
+   "sub": "Arduino: выходы",
+   "classes": [
+    8,
+    9,
+    10,
+    11
+   ],
+   "url": "/fizika-trenazhery/inzh-svetodiod.html",
+   "desc": "Подбор токоограничивающего резистора по ряду E12, мощность.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-05"
+  },
+  {
+   "sub": "Движение по окружности",
+   "desc": "Радиан, ω, центростремительное ускорение, неравномерное и относительное вращение, качение, передачи; выводы и встроенные тренажёры.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-05",
+   "id": "u-okruzhnost",
+   "title": "Учебник: движение по окружности",
+   "kind": "konspekt",
+   "section": "uchebnik",
+   "topic": "кинематика",
+   "classes": [
+    9,
+    10
+   ],
+   "url": "/fizika-trenazhery/uchebnik/dvizhenie-po-okruzhnosti.html"
+  },
+  {
+   "sub": "Движение по окружности",
+   "desc": "",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-05",
+   "id": "pdf-dz-okruzhnost",
+   "title": "Листок ДЗ: движение по окружности, 25 задач",
+   "kind": "pdf",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/okruzhnost/dz-dvizhenie-po-okruzhnosti.pdf"
+  },
+  {
+   "sub": "Движение по окружности",
+   "desc": "К каждой задаче листка — краткий ответ и фото решения. Одна сдача.",
+   "status": "klass",
+   "level": "baza",
+   "added": "2026-11-05",
+   "id": "dz-10fm-okruzhnost",
+   "title": "ДЗ · Движение по окружности (сдать онлайн)",
+   "kind": "dz",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "classes": [
+    10
+   ],
+   "url": "/fizika-trenazhery/exam.html?t=dz-10fm-okruzhnost",
+   "groups": [
+    "LC10FM"
+   ],
+   "test": "dz-10fm-okruzhnost"
+  },
+  {
+   "sub": "Движение по окружности",
+   "desc": "Когда стрелки совпадут, станут противоположны или перпендикулярны.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-05",
+   "id": "t-strelki",
+   "title": "Стрелки часов: относительная угловая скорость",
+   "kind": "trenazher",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "classes": [
+    9,
+    10
+   ],
+   "url": "/fizika-trenazhery/trenazhery/strelki.html"
+  },
+  {
+   "sub": "Движение по окружности",
+   "desc": "",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-05",
+   "id": "t-prashcha",
+   "title": "Праща: скорость по касательной",
+   "kind": "trenazher",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "classes": [
+    9,
+    10
+   ],
+   "url": "/fizika-trenazhery/trenazhery/prashcha.html"
+  },
+  {
+   "sub": "Движение по окружности",
+   "desc": "",
+   "status": "otkryto",
+   "level": "star",
+   "added": "2026-11-05",
+   "id": "t-katushka",
+   "title": "Катушка: качение и мгновенный центр",
+   "kind": "trenazher",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "classes": [
+    10
+   ],
+   "url": "/fizika-trenazhery/trenazhery/katushka.html"
+  },
+  {
+   "sub": "Движение по окружности",
+   "desc": "По мотивам открытого банка ФИПИ, 3 попытки.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-05",
+   "id": "oge-okr-t2",
+   "title": "ОГЭ · Движение по окружности",
+   "kind": "t2",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "classes": [
+    9
+   ],
+   "url": "/fizika-trenazhery/exam.html?t=oge-okr-t2",
+   "exam": {
+    "oge": []
+   },
+   "test": "oge-okr-t2"
+  },
+  {
+   "sub": "Движение по окружности",
+   "desc": "По мотивам открытого банка ФИПИ, 3 попытки, результат уходит учителю.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-05",
+   "id": "ege-okr-t2",
+   "title": "ЕГЭ · Движение по окружности",
+   "kind": "t2",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "classes": [
+    10
+   ],
+   "url": "/fizika-trenazhery/exam.html?t=ege-okr-t2",
+   "exam": {
+    "ege": []
+   },
+   "test": "ege-okr-t2"
+  },
+  {
+   "sub": "Передачи",
+   "desc": "Передаточное отношение, модуль, момент, КПД, скольжение, пульсация цепи.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-05",
+   "id": "i-peredachi",
+   "title": "Передачи вращения: ремень, цепь, шестерни, вариатор, планетарный ряд",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "кинематика",
+   "classes": [
+    9,
+    10,
+    11
+   ],
+   "url": "/fizika-trenazhery/trenazhery/peredachi.html"
+  }
+ ]
+}

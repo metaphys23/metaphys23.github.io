@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex"><link rel="icon" href="data:,">
+<title>Червячный редуктор: самоторможение и КПД</title>
+<style>
+/* Тренажёры «Редукторы» (инженерия, 8–11). Палитра и сетка — как у тренажёров «Движение по окружности». */
+:root{
+  --paper:#F3F7FA; --sheet:#FFFFFF; --ink:#0B3C5D; --ink-2:#5B6B7A; --rule:#BFD7E6;
+  --grid:#E3EDF4; --grid-major:#C3D6E3; --f1:#1F77B4; --f2:#2E9C6B; --f3:#8E5EA2; --res:#E8833A; --res-soft:#FDEBDD;
+  --mark:#2E9C6B; --mark-soft:#E5F4EB; --ok:#1E7A4C; --ok-soft:#E3F2E8; --bad:#B23A2E; --bad-soft:#F9E3E0;
+  --warn:#9A5B00; --warn-soft:#FBEFD9; --steel:#8C98A8; --bronze:#B07A2A;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0F1519; --sheet:#171F26; --ink:#E6EEF4; --ink-2:#9FB0BE; --rule:#2C3A46;
+  --grid:#1E2A33; --grid-major:#2F4150; --f1:#6FB3E6; --f2:#6CCB97; --f3:#C39BD8; --res:#F3A061; --res-soft:#3A2814;
+  --mark:#6CCB97; --mark-soft:#15301F; --ok:#7FD3A0; --ok-soft:#173226; --bad:#FF9C8F; --bad-soft:#3A1D1D;
+  --warn:#F0B867; --warn-soft:#3A2A12; --steel:#9AA6B6; --bronze:#D9A55A; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font:15.5px/1.5 var(--body);
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-block:16px 44px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:14px}
+h1{font:700 clamp(22px,4vw,32px)/1.15 var(--body);margin:0}
+.sub{color:var(--ink-2);margin:4px 0 0;max-width:80ch}
+.eyebrow{font:600 11.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{font:600 14px var(--body);padding:8px 14px;border-radius:999px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--f1);outline-offset:2px}
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:14px;align-items:start}
+@media (max-width:900px){.lab{grid-template-columns:1fr}}
+.stage{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:8px;min-width:0;display:grid;gap:6px}
+canvas{display:block;width:100%;max-width:100%;border-radius:6px;touch-action:manipulation}
+canvas.scene{aspect-ratio:16/10} canvas.chart{aspect-ratio:16/7}
+@media (max-width:600px){canvas.scene{aspect-ratio:4/3} canvas.chart{aspect-ratio:1/1}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink-2);padding:4px 4px 2px}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px;display:grid;gap:12px;min-width:0}
+.panel section{display:grid;gap:11px}
+.panel h2{font:700 16px var(--body);margin:0}
+.panel h3{font:700 13px var(--body);margin:4px 0 0;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em}
+.ctl{display:grid;gap:3px}
+.ctl label{display:flex;justify-content:space-between;font-size:14px;gap:8px}
+.ctl output,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--f1)}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+.seg button{font:600 13px var(--body);padding:6px 10px;border-radius:7px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--f1);color:#fff;border-color:var(--f1)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button.b{font:600 14px var(--body);padding:9px 14px;border-radius:7px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
+button.b.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+button.b.warn{background:transparent;color:var(--bad);border-color:var(--bad)}
+button.b:disabled{opacity:.45;cursor:not-allowed}
+.read{display:grid;grid-template-columns:1fr auto;gap:3px 10px;font-size:14px;border-top:1px solid var(--rule);padding-top:10px;margin:0}
+.read dt{color:var(--ink-2)} .read dd{margin:0;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.read dd.w{color:var(--bad)} .read dd.g{color:var(--ok)}
+.field{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:14px}
+.field input,.field select,select.sel{font:500 15px var(--mono);padding:7px 9px;border:1px solid var(--rule);border-radius:7px;background:var(--paper);color:var(--ink);width:100%;min-width:0}
+.msg{font-size:14px;padding:10px 12px;border-radius:7px}
+.msg.ok{background:var(--ok-soft);color:var(--ok)} .msg.bad{background:var(--bad-soft);color:var(--bad)}
+.hint{font-size:14px;background:var(--mark-soft);border-left:3px solid var(--mark);padding:8px 10px;border-radius:0 7px 7px 0}
+.svo{font-size:14px;border:1px solid var(--res);background:var(--res-soft);padding:10px 12px;border-radius:7px}
+.warnbox{font-size:14px;background:var(--warn-soft);color:var(--warn);padding:8px 10px;border-radius:7px}
+.score{display:flex;gap:14px;font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums}
+.score b{font-size:18px}
+.f{font-family:var(--mono);font-size:.95em;white-space:nowrap}
+.fb{display:grid;gap:2px;font-family:var(--mono);font-size:14px;padding:6px 10px;border-left:3px solid var(--rule);margin:2px 0}
+sub,sup{font-size:.72em}
+.note{font-size:13.5px;color:var(--ink-2);margin:0}
+.task p{margin:0}
+.theory{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 16px;display:grid;gap:10px;font-size:14.5px}
+.theory h2{font:700 18px var(--body);margin:0}
+.theory h3{font:700 15px var(--body);margin:4px 0 0}
+.theory p{margin:0;max-width:92ch}
+.theory ul{margin:0;padding-left:20px;display:grid;gap:4px;max-width:92ch}
+.tblwrap{overflow-x:auto;border:1px solid var(--rule);border-radius:8px}
+table.cmp{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+table.cmp th,table.cmp td{border-bottom:1px solid var(--rule);padding:7px 10px;text-align:left;vertical-align:top}
+table.cmp th{font:600 12px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);background:var(--paper)}
+.ladder{display:flex;flex-wrap:wrap;gap:6px;font-size:13px}
+.ladder a,.ladder span{padding:5px 10px;border-radius:999px;border:1px solid var(--rule);text-decoration:none;color:var(--ink);background:var(--sheet)}
+.ladder span{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.foot{font-size:13px;color:var(--ink-2)}
+.foot a{color:var(--f1)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:600 14px var(--mono);padding:7px 11px;border-radius:7px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer;min-width:52px}
+.chips button[aria-pressed="true"]{background:var(--f1);color:#fff;border-color:var(--f1)}
+.chips button.good{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.chips button.badc{background:var(--bad-soft);color:var(--bad);border-color:var(--bad)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+</style></head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">инженерия · редукторы · ступень 3 из 5</div>
+    <h1>Червячный редуктор: держит или поедет?</h1>
+    <p class="sub">Червяк — винт, который крутит зубчатое колесо. Одна пара даёт i = 40 и больше, а при малом угле подъёма витка груз не может провернуть червяк обратно — передача сама себя тормозит. Цена — низкий КПД.</p>
+  </header>
+  <nav class="ladder" aria-label="Редукторы: от простого к сложному"><a href="https://metaphys23.github.io/fizika-trenazhery/trenazhery/peredachi.html">Передачи вращения</a><a href="https://metaphys23.github.io/inzheneriya/reduktory/zachem-reduktor.html">1 · Зачем редуктор</a><a href="https://metaphys23.github.io/inzheneriya/reduktory/mnogostupenchatyy.html">2 · Многоступенчатый</a><span aria-current="page">3 · Червячный</span><a href="https://metaphys23.github.io/inzheneriya/reduktory/planetarnyy.html">4 · Планетарный</a><a href="https://metaphys23.github.io/inzheneriya/reduktory/vptk.html">5 · ВПТК изнутри</a></nav>
+  <div class="tabs" role="tablist" aria-label="Режим">
+    <button class="tab" role="tab" id="t-ex" data-mode="ex">Исследовать</button>
+    <button class="tab" role="tab" id="t-task" data-mode="task">Задача</button>
+    <button class="tab" role="tab" id="t-game" data-mode="game">Игра «Выбери червяк»</button>
+  </div>
+
+  <div class="lab">
+    <div class="stage">
+      <div class="btns"><button class="b ghost" id="play">Пуск</button><button class="b" id="motor" aria-pressed="true">Мотор: включён</button></div>
+      <canvas id="cv" class="scene" aria-label="Червяк над червячным колесом, барабан и груз"></canvas>
+      <canvas id="ch" class="chart" aria-label="КПД в зависимости от угла подъёма витка"></canvas>
+      <div class="legend"><span><i style="background:var(--steel)"></i>стальной червяк</span><span><i style="background:var(--bronze)"></i>бронзовое колесо</span><span><i style="background:var(--f1)"></i>КПД при подъёме</span><span><i style="background:var(--f3)"></i>КПД «обратного хода»</span><span><i style="background:var(--bad)"></i>зона самоторможения γ ≤ φ</span></div>
+    </div>
+
+    <aside class="panel">
+      <!-- ============ Исследовать ============ -->
+      <section data-pane="ex">
+        <h2>Пульт</h2>
+        <div class="ctl"><span style="font-size:14px">Число заходов червяка z<sub>1</sub></span><div class="seg" role="group" aria-label="Число заходов" id="z1Seg"><button data-z="1" aria-pressed="true">1</button><button data-z="2" aria-pressed="false">2</button><button data-z="4" aria-pressed="false">4</button></div></div>
+        <div class="ctl"><span style="font-size:14px">Коэффициент диаметра q = d<sub>1</sub>/m (ГОСТ 2144)</span><div class="seg" role="group" aria-label="Коэффициент диаметра" id="qSeg"><button data-q="8" aria-pressed="false">8</button><button data-q="10" aria-pressed="false">10</button><button data-q="12.5" aria-pressed="false">12,5</button><button data-q="16" aria-pressed="true">16</button><button data-q="20" aria-pressed="false">20</button></div></div>
+        <div class="ctl"><label for="z2"><span>Зубьев колеса z<sub>2</sub></span><output id="z2O"></output></label><input id="z2" type="range" min="20" max="80" step="1" value="40"></div>
+        <div class="ctl"><label for="ff"><span>Коэффициент трения f</span><output id="ffO"></output></label><input id="ff" type="range" min="0.02" max="0.2" step="0.005" value="0.07"></div>
+        <div class="ctl"><label for="mm"><span>Масса груза</span><output id="mmO"></output></label><input id="mm" type="range" min="5" max="300" step="5" value="100"></div>
+        <dl class="read" id="rd"></dl>
+        <p class="note">Сталь по бронзе со смазкой — f ≈ 0,03–0,08 (чем быстрее скольжение, тем меньше); сталь по стали — 0,1–0,15. Барабан r = 5 см, мотор 1 500 об/мин.</p>
+        <p class="note"><b>Исследование.</b> Выключите мотор при q = 16 и при q = 8. Найдите самый «экономный» червяк, который ещё держит груз. Может ли самотормозящая передача иметь КПД больше 50 %?</p>
+      </section>
+
+      <!-- ============ Задача ============ -->
+      <section data-pane="task" class="task" hidden>
+        <h2>Задача</h2>
+        <div class="seg" role="group" aria-label="Номер задачи" id="tkSeg"><button data-tk="1" aria-pressed="true">№ 1</button><button data-tk="2" aria-pressed="false">№ 2</button><button data-tk="3" aria-pressed="false">№ 3</button></div>
+        <p>Лебёдка с червячным редуктором: однозаходный червяк (z<sub>1</sub> = 1), q = 16, колесо z<sub>2</sub> = 40, сталь по бронзе f = 0,07. Барабан радиусом r = 5 см поднимает груз m = 100 кг, g = 9,8 Н/кг.</p>
+        <p id="tkQ"></p>
+        <div class="field"><label for="tkA" id="tkL">Ответ</label><input id="tkA" inputmode="decimal" autocomplete="off"><span id="tkU"></span></div>
+        <div class="btns"><button class="b" id="tkCheck">Проверить</button><button class="b ghost" id="tkHint">Подсказка (0/3)</button></div>
+        <div class="msg" id="tkMsg" role="status" aria-live="polite" hidden></div>
+        <div id="tkHints" style="display:grid;gap:6px"></div>
+        <div class="svo" id="tkSvo" hidden></div>
+      </section>
+
+      <!-- ============ Игра ============ -->
+      <section data-pane="game" hidden>
+        <h2>Выбери червяк</h2>
+        <div class="score" id="gScore"></div>
+        <p id="gQ"></p>
+        <div class="chips" id="gChips" role="group" aria-label="Каталог червяков: заходы / q"></div>
+        <div class="btns"><button class="b warn" id="gNo">Невозможно</button><button class="b ghost" id="gNext">Следующий заказ</button></div>
+        <div class="msg" id="gMsg" role="status" aria-live="polite" hidden></div>
+      </section>
+    </aside>
+  </div>
+
+  <section class="theory">
+    <h2>Что здесь происходит</h2>
+    <p><b>Червячная передача</b> — червяк (винт с z<sub>1</sub> заходами резьбы) и червячное колесо с z<sub>2</sub> зубьями; оси скрещиваются под прямым углом. За оборот червяка колесо поворачивается на z<sub>1</sub> зубьев, поэтому <span class="f">i = z<sub>2</sub> / z<sub>1</sub></span>: однозаходный червяк и колесо на 40 зубьев дают 40 : 1 в одной компактной паре.</p>
+    <p>Виток червяка — наклонная плоскость, «намотанная» на цилиндр. Её угол — <b>угол подъёма витка</b> <span class="f">tg γ = z<sub>1</sub> / q</span>. Трение задаёт <b>угол трения</b> <span class="f">tg φ = f</span>. Как у бруска на наклонной плоскости: если γ ≤ φ, груз не может сам съехать — колесо не провернёт червяк. Это <b>самоторможение</b>.</p>
+    <div class="fb"><span>η<sub>подъём</sub> = tg γ / tg(γ + φ)</span><span>η<sub>обратный</sub> = tg(γ − φ) / tg γ   (при γ ≤ φ — ноль или меньше: держит)</span></div>
+    <p><b>Теорема о 50 %.</b> На границе самоторможения γ = φ КПД равен <span class="f">tg φ / tg 2φ = (1 − tg² φ) / 2</span> — меньше половины. Поэтому самотормозящий червяк всегда тратит на трение больше, чем передаёт. Это плата за то, что груз держится без тормоза.</p>
+    <h3>Где встречается</h3>
+    <ul>
+      <li><b>Колки гитары, балалайки, контрабаса</b> — маленький червяк держит натяжение струны: самоторможение не даёт строю «уплыть».</li>
+      <li><b>Лебёдки старых лифтов</b>, шлагбаумы, привод ворот, поворотные столы станков, делительные головки.</li>
+      <li><b>Рулевой механизм «классики» ВАЗ</b> — глобоидальный червяк и ролик.</li>
+      <li><b>Многозаходные червяки</b> (z<sub>1</sub> = 2–4) ставят, когда важнее КПД, чем удержание.</li>
+    </ul>
+    <p class="note">Осторожно: при вибрации трение покоя падает, и «самотормозящая» передача может проскальзывать. На лифтах и подъёмниках всё равно ставят тормоз. Потери в подшипниках здесь не учтены.</p>
+  </section>
+  <p class="foot">Тренажёр открывается без входа и ничего не отправляет · <a href="https://metaphys23.github.io/inzheneriya/">Инженерия на Тезаурусе</a></p>
+</div>
+<script>
+/* Ядро тренажёров «Редукторы»: холст с учётом плотности пикселей, цвета из CSS, числа по-русски,
+   ползунки, вкладки, лесенка подсказок, зубчатые колёса (внешние и с внутренними зубьями). Без зависимостей. */
+(function(){
+  'use strict';
+  const RC = {};
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  RC.css = css;
+  RC.col = () => ({ink: css('--ink'), ink2: css('--ink-2'), rule: css('--rule'), grid: css('--grid'), gridM: css('--grid-major'),
+    paper: css('--paper'), sheet: css('--sheet'), f1: css('--f1'), f2: css('--f2'), f3: css('--f3'), res: css('--res'),
+    ok: css('--ok'), bad: css('--bad'), warn: css('--warn'), steel: css('--steel'), bronze: css('--bronze'), body: css('--body'), mono: css('--mono')});
+  RC.$ = s => document.querySelector(s);
+  RC.prep = function(cv){
+    const W = cv.clientWidth, H = cv.clientHeight, d = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.round(W * d), h = Math.round(H * d);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    const ctx = cv.getContext('2d'); ctx.setTransform(d, 0, 0, d, 0, 0); ctx.fillStyle = css('--sheet'); ctx.fillRect(0, 0, W, H);
+    return {ctx, W, H};
+  };
+  RC.text = function(ctx, s, x, y, o){
+    o = o || {}; ctx.save(); ctx.fillStyle = o.color || css('--ink');
+    ctx.font = (o.italic ? 'italic ' : '') + (o.weight || 500) + ' ' + (o.size || 13) + 'px ' + (o.mono ? css('--mono') : css('--body'));
+    ctx.textAlign = o.align || 'left'; ctx.textBaseline = o.base || 'middle'; ctx.fillText(s, x, y); ctx.restore();
+  };
+  RC.arrow = function(ctx, x1, y1, x2, y2, color, lw){
+    const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy); if (L < 2) return;
+    lw = lw || 2; const h = Math.min(9 + lw, L * 0.45), ux = dx / L, uy = dy / L;
+    ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - ux * h * 0.7, y2 - uy * h * 0.7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - ux * h - uy * h * 0.42, y2 - uy * h + ux * h * 0.42);
+    ctx.lineTo(x2 - ux * h + uy * h * 0.42, y2 - uy * h - ux * h * 0.42); ctx.closePath(); ctx.fill(); ctx.restore();
+  };
+  // число по-русски: десятичная запятая, неразрывный пробел в тысячах, минус «−»
+  RC.fmt = function(x, d){
+    if (x == null || !isFinite(x)) return '—';
+    d = d == null ? 2 : d; let s = x.toFixed(d).replace('.', ',');
+    s = s.replace(/^(-?\d+)/, m => m.replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    return s.replace('-', '−');
+  };
+  RC.sig = function(x, n){             // n значащих цифр, без хвостовых нулей
+    if (!isFinite(x)) return '—'; if (x === 0) return '0';
+    const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x))));
+    let s = RC.fmt(x, Math.min(d, 6)); if (s.includes(',')) s = s.replace(/0+$/, '').replace(/,$/, ''); return s;
+  };
+  RC.num = function(s){                // «0,16», «−2», «4/3», «1 200»
+    s = String(s).trim().replace(/\s| /g, '').replace(/,/g, '.').replace(/[−–]/g, '-');
+    if (!s) return NaN;
+    const m = s.match(/^(-?\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/); if (m) return +m[1] / +m[2];
+    return /^-?\d*\.?\d+(e-?\d+)?$/i.test(s) ? parseFloat(s) : NaN;
+  };
+  RC.near = (a, b, rel, abs) => Math.abs(a - b) <= Math.max((rel || 0) * Math.abs(b), abs || 0);
+  RC.slider = function(id, fmt, on){
+    const el = document.getElementById(id), out = document.getElementById(id + 'O');
+    const upd = () => { if (out) out.textContent = fmt ? fmt(+el.value) : el.value; on && on(); };
+    if (out) out.textContent = fmt ? fmt(+el.value) : el.value;
+    el.addEventListener('input', upd); RC._sl.push(upd); return {el, get: () => +el.value, set: v => { el.value = v; upd(); }, upd};
+  };
+  RC._sl = []; RC.refresh = () => RC._sl.forEach(f => f());
+  RC.seg = function(root, attr, on){   // группа кнопок aria-pressed; возвращает {get,set}
+    const bs = [...root.querySelectorAll('button[data-' + attr + ']')];
+    let cur = (bs.find(b => b.getAttribute('aria-pressed') === 'true') || bs[0]).dataset[attr];
+    const set = k => { cur = k; bs.forEach(b => b.setAttribute('aria-pressed', b.dataset[attr] === k)); on && on(k); };
+    bs.forEach(b => b.addEventListener('click', () => set(b.dataset[attr]))); return {get: () => cur, set};
+  };
+  // вкладки: .tab[data-mode] (id t-ex/t-task/t-game), панели section[data-pane]
+  RC.tabs = function(onShow){
+    const tabs = [...document.querySelectorAll('.tab[data-mode]')], panes = [...document.querySelectorAll('[data-pane]')];
+    let cur = null;
+    const show = k => { cur = k; tabs.forEach(t => t.setAttribute('aria-selected', t.dataset.mode === k));
+      panes.forEach(p => p.hidden = p.dataset.pane !== k); onShow && onShow(k);
+      try { history.replaceState(null, '', '#' + k); } catch (e) {} };
+    tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.mode)));
+    const h = (location.hash || '').slice(1); show(tabs.some(t => t.dataset.mode === h) ? h : tabs[0].dataset.mode);
+    return {get: () => cur, show};
+  };
+  RC.reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // общий цикл анимации: draw(dt); при reduce — один кадр по запросу
+  RC.loop = function(draw){
+    let last = 0, raf = 0, playing = !RC.reduce;
+    const tick = t => { const dt = last ? Math.min((t - last) / 1000, 0.05) : 0; last = t; draw(playing ? dt : 0); raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    window.addEventListener('resize', () => draw(0));
+    return {playing: () => playing, set: p => { playing = p; last = 0; }, redraw: () => draw(0)};
+  };
+  RC.playBtn = function(btn, loop){
+    const lab = () => { btn.textContent = loop.playing() ? '❚❚ Пауза' : '▶ Пуск'; btn.setAttribute('aria-pressed', loop.playing()); };
+    btn.addEventListener('click', () => { loop.set(!loop.playing()); lab(); }); lab();
+  };
+  // лесенка подсказок: кнопка «Подсказка (k/n)», блок с выданными подсказками
+  RC.hints = function(btn, box){
+    let list = [], k = 0;
+    const lab = () => { btn.textContent = 'Подсказка (' + k + '/' + list.length + ')'; btn.disabled = k >= list.length; };
+    btn.addEventListener('click', () => { if (k < list.length) { const d = document.createElement('div'); d.className = 'hint'; d.innerHTML = list[k++]; box.appendChild(d); lab(); } });
+    return {reset: l => { list = l; k = 0; box.innerHTML = ''; lab(); }, used: () => k};
+  };
+  RC.msg = function(el, cls, html){ el.className = 'msg ' + cls; el.innerHTML = html; el.hidden = !html; };
+  RC.rnd = (a, b) => a + Math.random() * (b - a);
+  RC.pick = a => a[Math.floor(Math.random() * a.length)];
+  // ---------- зубчатые колёса ----------
+  // внешнее колесо: делительный радиус r (px), z зубьев, th — угол центра зуба № 0
+  RC.gear = function(ctx, cx, cy, z, r, th, fill, stroke, o){
+    o = o || {}; const m = 2 * r / z, ra = r + m, rf = r - 1.25 * m, step = 2 * Math.PI / z;
+    ctx.save(); ctx.globalAlpha = o.alpha == null ? 1 : o.alpha; ctx.beginPath();
+    for (let k = 0; k < z; k++) {
+      const c = th + k * step, a = [c - step * 0.5, c - step * 0.27, c - step * 0.14, c + step * 0.14, c + step * 0.27, c + step * 0.5], R = [rf, rf, ra, ra, rf, rf];
+      for (let j = 0; j < 6; j++) { const x = cx + R[j] * Math.cos(a[j]), y = cy + R[j] * Math.sin(a[j]); (k === 0 && j === 0) ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+    }
+    ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = o.lw || 1.2; ctx.strokeStyle = stroke; ctx.stroke();
+    if (o.pitch) { ctx.setLineDash([3, 4]); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]); }
+    if (!o.noHub) {
+      ctx.beginPath(); ctx.arc(cx, cy, Math.max(3.5, Math.min(8, rf * 0.18)), 0, 2 * Math.PI); ctx.fillStyle = stroke; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + rf * 0.82 * Math.cos(th), cy + rf * 0.82 * Math.sin(th)); ctx.lineWidth = 2.5; ctx.stroke();
+    }
+    ctx.restore();
+  };
+  // колесо с внутренними зубьями (корона): зуб № 0 смотрит к центру по углу th; R — наружный радиус обода
+  RC.ring = function(ctx, cx, cy, z, r, th, fill, stroke, R, o){
+    o = o || {}; const m = 2 * r / z, rt = r - m, rr = r + 1.25 * m, step = 2 * Math.PI / z;
+    ctx.save(); ctx.globalAlpha = o.alpha == null ? 1 : o.alpha; ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, 2 * Math.PI, false);
+    for (let k = z - 1; k >= 0; k--) {
+      const c = th + k * step, a = [c + step * 0.5, c + step * 0.27, c + step * 0.14, c - step * 0.14, c - step * 0.27, c - step * 0.5], Rr = [rr, rr, rt, rt, rr, rr];
+      for (let j = 0; j < 6; j++) { const x = cx + Rr[j] * Math.cos(a[j]), y = cy + Rr[j] * Math.sin(a[j]); (k === z - 1 && j === 0) ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+    }
+    ctx.closePath(); ctx.fillStyle = fill; ctx.fill('evenodd'); ctx.lineWidth = 1.2; ctx.strokeStyle = stroke; ctx.stroke();
+    ctx.restore();
+  };
+  // угол второго колеса, чтобы зубья входили во впадины: колесо 2 стоит от колеса 1 по направлению alpha
+  RC.meshExt = (th1, z1, z2, alpha) => alpha + Math.PI - (Math.PI - (alpha - th1) * z1) / z2;
+  // сателлит внутри короны: центр сателлита в направлении beta от центра короны
+  RC.meshInt = (thR, zR, zp, beta) => beta - (2 * Math.PI / zp) * ((beta - thR) * zR / (2 * Math.PI) + 0.5);
+  RC.rotArrow = function(ctx, cx, cy, r, dir, color){   // dir: +1 — по часовой на экране, −1 — против
+    if (!dir) return; ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+    const a0 = -Math.PI * 0.8, a1 = -Math.PI * 0.2; ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1); ctx.stroke();
+    const ae = dir > 0 ? a1 : a0, s = dir > 0 ? 1 : -1, x = cx + r * Math.cos(ae), y = cy + r * Math.sin(ae);
+    const tx = -Math.sin(ae) * s, ty = Math.cos(ae) * s, h = 9;
+    ctx.beginPath(); ctx.moveTo(x + tx * h, y + ty * h); ctx.lineTo(x - ty * h * 0.5, y + tx * h * 0.5); ctx.lineTo(x + ty * h * 0.5, y - tx * h * 0.5); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  };
+  RC.rrect = function(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); };
+  // счёт в игре
+  RC.score = function(el){
+    let ok = 0, all = 0, ser = 0, best = 0;
+    const draw = () => { el.innerHTML = '<span>верно <b>' + ok + '</b> из ' + all + '</span><span>серия <b>' + ser + '</b></span><span>рекорд <b>' + best + '</b></span>'; };
+    draw(); return {add: good => { all++; if (good) { ok++; ser++; best = Math.max(best, ser); } else ser = 0; draw(); }};
+  };
+  window.RC = RC;
+})();
+
+</script>
+<script>
+(function(){
+'use strict';
+const g = 9.8, R_DR = 0.05, N1 = 1500, DEG = 180 / Math.PI;
+const row = (a, b, c) => '<dt>' + a + '</dt><dd' + (c ? ' class="' + c + '"' : '') + '>' + b + '</dd>';
+function worm(p){
+  const gm = Math.atan(p.z1 / p.q), ph = Math.atan(p.f), eta = Math.tan(gm) / Math.tan(gm + ph), lock = gm <= ph + 1e-12;
+  const eb = lock ? 0 : Math.tan(gm - ph) / Math.tan(gm), i = p.z2 / p.z1, Md = p.m * g * R_DR;
+  return {gm, ph, eta, lock, eb, i, Md, M1: Md / (i * eta), n2: N1 / i, v: 2 * Math.PI * N1 / i / 60 * R_DR};
+}
+const V = {p: {z1: 1, q: 16, z2: 40, f: 0.07, m: 100}, motor: true, nums: true, chart: true};
+let th2 = 0, w2 = 0, sL = 0, th1 = 0;
+
+// ---------- сцена ----------
+const cv = RC.$('#cv'), ch = RC.$('#ch');
+function drawScene(dt){
+  const {ctx, W, H} = RC.prep(cv), C = RC.col(), p = V.p, s = worm(p);
+  const Rw = Math.min(H * 0.3, W * 0.21), L = Math.min(W * 0.55, Rw * 2.9), mw = Math.min(W * 0.12, 80), cx = Math.max(W * 0.40, mw + 20 + L / 2);
+  const mod = 2 * Rw / p.z2, d1 = p.q * mod, cy = H * 0.10 + d1 + Rw + 8;
+  const rd = Rw * 0.36, W2UP = 2 * Math.PI * 0.05;        // визуальная скорость колеса при подъёме
+  // динамика картинки: подъём / удержание / сползание с разгоном
+  // подъём — против часовой (трос справа идёт вверх); сползание — по часовой с разгоном
+  if (V.motor) w2 = -W2UP; else if (s.lock) w2 = 0; else w2 = Math.min(1.2, Math.max(w2, 0) + (0.5 * s.eb + 0.02) * dt);
+  th2 += w2 * dt; th1 += Math.max(-30, Math.min(30, w2 * s.i)) * dt;
+  // колесо (бронза) и барабан
+  RC.gear(ctx, cx, cy, p.z2, Rw, th2, C.bronze + '55', C.bronze, {noHub: true});
+  ctx.fillStyle = C.bronze; ctx.beginPath(); ctx.arc(cx, cy, rd, 0, 2 * Math.PI); ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = C.paper; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + rd * 0.85 * Math.cos(th2), cy + rd * 0.85 * Math.sin(th2)); ctx.stroke();
+  // червяк: цилиндр над колесом, витки — видимая половина винтовой линии
+  const yw = cy - Rw - d1 / 2 + mod * 0.2, x0 = cx - L / 2, pitch = Math.PI * mod, lead = p.z1 * pitch;
+  ctx.fillStyle = C.steel; RC.rrect(ctx, x0, yw - d1 / 2, L, d1, Math.min(10, d1 / 3)); ctx.fill();
+  ctx.save(); RC.rrect(ctx, x0, yw - d1 / 2, L, d1, Math.min(10, d1 / 3)); ctx.clip();
+  const ph0 = cx + Rw * (th2 + Math.PI / 2) + pitch / 2 - lead / 4;
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6;
+  for (let k = -Math.ceil(L / pitch) - 4; k <= Math.ceil(L / pitch) + 4; k++) {
+    ctx.beginPath();
+    for (let j = 0; j <= 16; j++) { const f = -Math.PI / 2 + Math.PI * j / 16, x = ph0 + k * pitch + lead * f / (2 * Math.PI), y = yw + d1 / 2 * Math.sin(f); j ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke();
+  }
+  ctx.restore(); ctx.strokeStyle = C.ink2; ctx.lineWidth = 1; RC.rrect(ctx, x0, yw - d1 / 2, L, d1, Math.min(10, d1 / 3)); ctx.stroke();
+  // мотор слева на оси червяка
+  const mh = Math.max(d1 * 1.3, 34), mx = Math.max(6, x0 - mw - 14);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(mx + mw, yw); ctx.lineTo(x0, yw); ctx.stroke();
+  ctx.fillStyle = V.motor ? C.f1 : C.rule; RC.rrect(ctx, mx, yw - mh / 2, mw, mh, 8); ctx.fill();
+  RC.text(ctx, V.motor ? 'мотор' : 'выкл', mx + mw / 2, yw, {align: 'center', color: V.motor ? '#fff' : C.ink2, weight: 700, size: 12});
+  const fx = mx + mw + (x0 - mx - mw) / 2; ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(fx, yw + (mh * 0.3) * Math.sin(th1), 3.5, 0, 2 * Math.PI); ctx.fill();
+  // трос и груз
+  const lx = cx + rd, yTop = cy + rd * 0.3, yBot = H - 56, span = Math.max(30, yBot - yTop - 40);
+  sL += -w2 * rd * dt; if (sL > span) sL = 0; if (sL < 0) sL = span;
+  const ly = yBot - sL, lw = Math.max(50, Math.min(70, W * 0.1));
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(lx, cy); ctx.lineTo(lx, ly); ctx.stroke();
+  ctx.fillStyle = C.ink2; RC.rrect(ctx, lx - lw / 2, ly, lw, 36, 4); ctx.fill();
+  RC.text(ctx, RC.fmt(p.m, 0) + ' кг', lx, ly + 18, {align: 'center', color: C.paper, weight: 700, size: 13});
+  // статус
+  const st = V.motor ? ['поднимает', C.ok] : s.lock ? ['мотор выключен — груз держится: самоторможение', C.ok] : ['мотор выключен — груз сползает и раскручивает червяк', C.bad];
+  RC.text(ctx, st[0], 12, H - 14, {color: st[1], weight: 700, size: 14});
+  const bx = Math.min(W - 12, cx + Rw + 150);
+  if (V.nums) {
+    RC.text(ctx, 'i = ' + RC.sig(s.i, 3), bx, H * 0.12 + 4, {align: 'right', mono: true, size: 13, weight: 700});
+    RC.text(ctx, 'γ = ' + RC.fmt(s.gm * DEG, 2) + '°', bx, H * 0.12 + 24, {align: 'right', mono: true, size: 13});
+    RC.text(ctx, 'φ = ' + RC.fmt(s.ph * DEG, 2) + '°', bx, H * 0.12 + 44, {align: 'right', mono: true, size: 13});
+  }
+}
+
+// ---------- график η(γ) ----------
+const CAT = []; [1, 2, 4].forEach(z1 => [8, 10, 12.5, 16, 20].forEach(q => CAT.push({z1, q})));
+function drawChart(){
+  const {ctx, W, H} = RC.prep(ch), C = RC.col(), p = V.p, s = worm(p);
+  const x0 = 48, x1 = W - 16, y0 = H - 30, y1 = 18, GM = 28;
+  const X = d => x0 + (x1 - x0) * d / GM, Y = e => y0 - (y0 - y1) * e;
+  ctx.strokeStyle = C.ink2; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, y1 - 4); ctx.lineTo(x0, y0); ctx.lineTo(x1, y0); ctx.stroke();
+  RC.text(ctx, 'угол подъёма витка γ, °', x1, y0 + 20, {align: 'right', size: 11, color: C.ink2}); RC.text(ctx, 'КПД', x0 + 6, y1, {size: 11, color: C.ink2});
+  for (let d = 0; d <= GM; d += 4) { ctx.beginPath(); ctx.moveTo(X(d), y0); ctx.lineTo(X(d), y0 + 4); ctx.stroke(); RC.text(ctx, String(d), X(d), y0 + 11, {align: 'center', size: 11, mono: true, color: C.ink2}); }
+  [0.5, 1].forEach(e => RC.text(ctx, (e * 100) + ' %', x0 - 6, Y(e), {align: 'right', size: 11, mono: true, color: C.ink2}));
+  const phd = s.ph * DEG;
+  ctx.fillStyle = C.bad; ctx.globalAlpha = 0.09; ctx.fillRect(x0, y1, X(phd) - x0, y0 - y1); ctx.globalAlpha = 1;
+  RC.text(ctx, 'держит', x0 + 4, y0 - 10, {size: 11, color: C.bad, weight: 700});
+  ctx.strokeStyle = C.ink2; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(x0, Y(0.5)); ctx.lineTo(x1, Y(0.5)); ctx.stroke(); ctx.setLineDash([]);
+  if (!V.chart) { RC.text(ctx, 'график откроется после решения', (x0 + x1) / 2, (y0 + y1) / 2, {align: 'center', color: C.ink2}); return; }
+  const curve = (fn, col, dash) => { ctx.strokeStyle = col; ctx.lineWidth = 2.2; ctx.setLineDash(dash || []); ctx.beginPath(); let st = false;
+    for (let j = 1; j <= 280; j++) { const d = GM * j / 280, e = fn(d / DEG); if (e == null) { st = false; continue; } st ? ctx.lineTo(X(d), Y(e)) : ctx.moveTo(X(d), Y(e)); st = true; } ctx.stroke(); ctx.setLineDash([]); };
+  curve(gm => Math.tan(gm) / Math.tan(gm + s.ph), C.f1);
+  curve(gm => gm > s.ph ? Math.tan(gm - s.ph) / Math.tan(gm) : null, C.f3, [6, 4]);
+  CAT.forEach(w => { const gm = Math.atan(w.z1 / w.q), e = Math.tan(gm) / Math.tan(gm + s.ph), cur = w.z1 === p.z1 && w.q === p.q;
+    ctx.fillStyle = cur ? C.res : C.ink2; ctx.beginPath(); ctx.arc(X(gm * DEG), Y(e), cur ? 6 : 3, 0, 2 * Math.PI); ctx.fill(); });
+  const cur = Math.atan(p.z1 / p.q) * DEG; RC.text(ctx, RC.fmt(s.eta * 100, 1) + ' %', X(cur) + 9, Y(s.eta) + 12, {size: 12, mono: true, weight: 700, color: C.res});
+}
+const loop = RC.loop(dt => { drawScene(dt); drawChart(); }); RC.playBtn(RC.$('#play'), loop);
+const mBtn = RC.$('#motor');
+function setMotor(on){ V.motor = on; mBtn.textContent = on ? 'Мотор: включён' : 'Мотор: выключен'; mBtn.setAttribute('aria-pressed', on); mBtn.className = on ? 'b' : 'b ghost'; }
+mBtn.addEventListener('click', () => setMotor(!V.motor));
+
+// ---------- Исследовать ----------
+let mode = '';
+const z1Seg = RC.seg(RC.$('#z1Seg'), 'z', () => exUpd()), qSeg = RC.seg(RC.$('#qSeg'), 'q', () => exUpd());
+const sz2 = RC.slider('z2', v => String(v), exUpd), sf = RC.slider('ff', v => RC.fmt(v, 3), exUpd), smm = RC.slider('mm', v => RC.fmt(v, 0) + ' кг', exUpd);
+function exUpd(){
+  if (mode !== 'ex') return;
+  V.p = {z1: +z1Seg.get(), q: +qSeg.get(), z2: sz2.get(), f: sf.get(), m: smm.get()}; V.nums = V.chart = true;
+  const s = worm(V.p);
+  RC.$('#rd').innerHTML = row('Передаточное число i', RC.sig(s.i, 3)) + row('Угол подъёма γ', RC.fmt(s.gm * DEG, 2) + '°') + row('Угол трения φ', RC.fmt(s.ph * DEG, 2) + '°') +
+    row('Самоторможение', s.lock ? 'да, γ ≤ φ' : 'нет, γ > φ', s.lock ? 'g' : 'w') + row('КПД при подъёме', RC.fmt(s.eta * 100, 1) + ' %') +
+    row('КПД обратного хода', s.lock ? '0 — держит' : RC.fmt(s.eb * 100, 1) + ' %') + row('Колесо', RC.sig(s.n2, 3) + ' об/мин') + row('Скорость груза', RC.sig(s.v, 3) + ' м/с') +
+    row('Момент на барабане', RC.sig(s.Md, 3) + ' Н·м') + row('Нужен мотору', RC.sig(s.M1, 3) + ' Н·м') + row('Мощность мотора', RC.sig(s.M1 * 2 * Math.PI * N1 / 60, 3) + ' Вт');
+  loop.redraw();
+}
+
+// ---------- Задача ----------
+const TP = {z1: 1, q: 16, z2: 40, f: 0.07, m: 100}, TS = worm(TP);
+const TK = {
+  1: {q: '<b>№ 1.</b> Найдите КПД передачи при подъёме груза.', lab: 'η =', unit: '%', ans: TS.eta * 100, tol: 0.01,
+      hints: ['Виток червяка — наклонная плоскость. Найдите её угол γ и угол трения φ.',
+              '<div class="fb"><span>tg γ = z<sub>1</sub> / q</span><span>tg φ = f</span><span>η = tg γ / tg(γ + φ)</span></div>',
+              'tg γ = 1/16 = 0,0625 → γ ≈ 3,58°; tg φ = 0,07 → φ ≈ 4,00°. Осталось найти tg 7,58°.'],
+      svo: '<b>Свойство.</b> Здесь γ < φ, и КПД меньше 50 %. Это не совпадение: у любой самотормозящей передачи η < ½.'},
+  2: {q: '<b>№ 2.</b> Какой момент должен развивать мотор на валу червяка, чтобы равномерно поднимать груз?', lab: 'M<sub>1</sub> =', unit: 'Н·м', ans: TS.M1, tol: 0.015,
+      hints: ['Момент на барабане создаёт сила тяжести груза. Редуктор увеличивает момент мотора в i·η раз.',
+              '<div class="fb"><span>M<sub>б</sub> = m · g · r</span><span>i = z<sub>2</sub> / z<sub>1</sub></span><span>M<sub>1</sub> = M<sub>б</sub> / (i · η)</span></div>',
+              'M<sub>б</sub> = 100 · 9,8 · 0,05 = 49 Н·м, i = 40, η — из задачи № 1 (≈ 0,470).'],
+      svo: '<b>Свойство.</b> Больше половины работы мотора уходит в нагрев червяка и колеса. Червячные редукторы греются — у больших делают рёбра и масляную ванну.'},
+  3: {q: '<b>№ 3.</b> Конструктор хочет поднять КПД и взять червяк потолще или потоньше. Какое <b>наименьшее</b> q из ряда 8; 10; 12,5; 16; 20 ещё даёт самоторможение (z<sub>1</sub> = 1, f = 0,07)?', lab: 'q =', unit: '', ans: 16, tol: 0, set: true,
+      hints: ['Груз держится, пока угол подъёма витка не больше угла трения: γ ≤ φ.',
+              'tg γ = 1/q, tg φ = f. Условие: 1/q ≤ 0,07.',
+              'q ≥ 1/0,07 ≈ 14,3. Какое ближайшее значение из ряда?'],
+      svo: '<b>Свойство.</b> Чем меньше q (тоньше червяк, круче виток), тем выше КПД — но при q = 12,5 груз уже сползает. Граница самоторможения: <span class="f">q ≥ z<sub>1</sub> / f</span>.'}
+};
+let tk = '1';
+const hints = RC.hints(RC.$('#tkHint'), RC.$('#tkHints'));
+RC.seg(RC.$('#tkSeg'), 'tk', k => { tk = k; tkShow(); });
+function tkShow(){
+  const T = TK[tk]; RC.$('#tkQ').innerHTML = T.q; RC.$('#tkL').innerHTML = T.lab; RC.$('#tkU').textContent = T.unit; RC.$('#tkA').value = '';
+  RC.msg(RC.$('#tkMsg'), '', ''); hints.reset(T.hints); RC.$('#tkSvo').hidden = true;
+  V.p = Object.assign({}, TP); V.nums = false; V.chart = false; setMotor(true); loop.redraw();
+}
+function tkCheck(){
+  const T = TK[tk], a = RC.num(RC.$('#tkA').value), el = RC.$('#tkMsg');
+  if (!isFinite(a) || a <= 0) { RC.msg(el, 'bad', 'Введите положительное число (десятичная запятая).'); return; }
+  const good = T.set ? a === T.ans : RC.near(a, T.ans, T.tol);
+  if (good) {
+    RC.msg(el, 'ok', 'Верно! ' + (tk === '1' ? 'η ≈ ' + RC.fmt(TS.eta * 100, 1) + ' %.' : tk === '2' ? 'M₁ ≈ ' + RC.fmt(TS.M1, 2) + ' Н·м.' : 'При q = 16 угол подъёма 3,58° меньше угла трения 4,00° — мотор выключен, груз висит.'));
+    RC.$('#tkSvo').innerHTML = T.svo; RC.$('#tkSvo').hidden = false; V.nums = V.chart = true; if (tk === '3') setMotor(false); loop.redraw(); return;
+  }
+  let t = 'Не сходится. ';
+  if (tk === '1') {
+    if (RC.near(a, 0.0625 / 0.07 * 100, 0.01)) t = 'Это tg γ / tg φ. В знаменателе — тангенс суммы углов: η = tg γ / tg(γ + φ).';
+    else if (RC.near(a, TS.eta, 0.02)) t = 'Это доля, а ответ нужен в процентах.';
+    else if (RC.near(a, 0.0625 / (0.0625 + 0.07) * 100, 0.01)) t = 'Тангенсы нельзя складывать: tg(γ + φ) ≠ tg γ + tg φ. Найдите углы, сложите, потом возьмите тангенс.';
+    else if (a > 50) t = 'КПД больше 50 % — тогда передача не держала бы груз. Проверьте углы: tg γ = 1/16, tg φ = 0,07.';
+  } else if (tk === '2') {
+    if (RC.near(a, 1.225, 0.015)) t = 'Это момент без потерь на трение. С таким мотором груз не поедет: КПД меньше 50 %, нужно больше чем вдвое.';
+    else if (RC.near(a, 49 * TS.eta / 40, 0.02)) t = 'КПД надо не умножать, а делить: из-за трения мотору нужно больше, а не меньше.';
+    else if (RC.near(a, 49 / TS.eta, 0.02) || RC.near(a, 49, 0.01)) t = 'Забыли передаточное число: червяк вращается в 40 раз быстрее колеса, и момент на нём во столько же раз меньше (без учёта трения).';
+  } else {
+    const qs = [8, 10, 12.5, 16, 20];
+    if (!qs.includes(a)) t = 'Выберите значение из ряда 8; 10; 12,5; 16; 20.';
+    else { const s = worm(Object.assign({}, TP, {q: a}));
+      V.p = Object.assign({}, TP, {q: a}); V.nums = true; setMotor(false);
+      t = s.lock ? 'При q = ' + RC.fmt(a, 1).replace(',0', '') + ' груз держится, но это не наименьшее q: КПД ' + RC.fmt(s.eta * 100, 1) + ' % можно поднять.' :
+        'При q = ' + RC.fmt(a, 1).replace(',0', '') + ' угол подъёма ' + RC.fmt(s.gm * DEG, 2) + '° больше угла трения 4,00°: мотор выключен — смотрите, груз сползает.'; }
+  }
+  RC.msg(el, 'bad', t); loop.redraw();
+}
+RC.$('#tkCheck').addEventListener('click', tkCheck);
+RC.$('#tkA').addEventListener('keydown', e => { if (e.key === 'Enter') tkCheck(); });
+
+// ---------- Игра ----------
+const GC = CAT.filter(w => w.z1 <= 2), score = RC.score(RC.$('#gScore')); let G = null;
+const wl = w => w.z1 + ' / ' + String(w.q).replace('.', ',');
+function gNew(){
+  const f = RC.pick([0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.15]), type = Math.random() < 0.6 ? 'best' : 'min';
+  const X = type === 'min' ? RC.pick([35, 40, 45, 55, 60]) : 0;
+  const ev = GC.map(w => worm({z1: w.z1, q: w.q, z2: 40, f, m: 100}));
+  let ok;
+  if (type === 'best') { const lk = ev.filter(s => s.lock), best = lk.length ? Math.max(...lk.map(s => s.eta)) : -1; ok = ev.map(s => s.lock && s.eta >= best - 1e-9); }
+  else ok = ev.map(s => s.lock && s.eta * 100 >= X);
+  G = {f, type, X, ev, ok, done: false};
+  RC.$('#gQ').innerHTML = 'Пара сталь — бронза, <b>f = ' + RC.fmt(f, 2) + '</b>, колесо z<sub>2</sub> = 40. ' + (type === 'best' ? 'Нужна лебёдка, которая <b>держит груз без тормоза</b>, и при этом с <b>наибольшим КПД</b>.' : 'Нужна передача, которая <b>держит груз без тормоза</b> и имеет КПД <b>не меньше ' + X + ' %</b>.') + ' Червяки: заходы / q.';
+  RC.$('#gChips').innerHTML = GC.map((w, k) => '<button data-k="' + k + '" aria-pressed="false">' + wl(w) + '</button>').join('');
+  RC.$('#gChips').querySelectorAll('button').forEach(b => b.addEventListener('click', () => gAns(+b.dataset.k)));
+  RC.msg(RC.$('#gMsg'), '', ''); V.p = {z1: 1, q: 10, z2: 40, f, m: 100}; V.nums = false; V.chart = false; setMotor(true); loop.redraw();
+}
+function gAns(k){
+  if (!G || G.done) return; G.done = true;
+  const any = G.ok.some(x => x), good = k < 0 ? !any : G.ok[k]; score.add(good);
+  RC.$('#gChips').querySelectorAll('button').forEach(b => { const j = +b.dataset.k; if (G.ok[j]) b.classList.add('good'); if (j === k && !good) b.classList.add('badc'); });
+  const phd = Math.atan(G.f) * DEG; let t;
+  if (k < 0) t = any ? 'Есть подходящий: отмечен зелёным.' : (G.type === 'min' && G.X >= 50 ? 'Верно: невозможно. Самотормозящая передача всегда имеет КПД меньше 50 %.' :
+      'Верно: невозможно. Угол трения ' + RC.fmt(phd, 2) + '° меньше угла подъёма даже самого пологого витка 1 / 20 (2,86°) — груз сползёт с любым червяком.');
+  else { const s = G.ev[k];
+    t = (good ? 'Верно! ' : '') + 'Червяк ' + wl(GC[k]) + ': γ = ' + RC.fmt(s.gm * DEG, 2) + '°, φ = ' + RC.fmt(phd, 2) + '° — ' + (s.lock ? 'держит' : 'груз сползает') + ', КПД ' + RC.fmt(s.eta * 100, 1) + ' %.' +
+      (good ? '' : !any ? (G.type === 'min' && G.X >= 50 ? ' Подходящего нет: у самотормозящей передачи КПД всегда меньше 50 %.' : ' Подходящего нет — правильный ответ «Невозможно».') : s.lock ? ' Держит, но есть вариант лучше.' : '');
+    V.p = {z1: GC[k].z1, q: GC[k].q, z2: 40, f: G.f, m: 100}; setMotor(false); }
+  V.nums = V.chart = true; RC.msg(RC.$('#gMsg'), good ? 'ok' : 'bad', t); loop.redraw();
+}
+RC.$('#gNo').addEventListener('click', () => gAns(-1));
+RC.$('#gNext').addEventListener('click', gNew);
+
+RC.tabs(k => { mode = k; if (k === 'ex') { setMotor(true); exUpd(); } else if (k === 'task') tkShow(); else gNew(); });
+})();
+</script>
+</body></html>

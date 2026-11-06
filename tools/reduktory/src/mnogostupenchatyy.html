@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex"><link rel="icon" href="data:,">
+<title>Многоступенчатый редуктор: собери из набора шестерён</title>
+<style>
+/*@CORE_CSS@*/
+.stg{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:6px;align-items:center;font-size:14px}
+.stg b{font:700 13px var(--mono);color:var(--ink-2)}
+</style></head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">инженерия · редукторы · ступень 2 из 5</div>
+    <h1>Многоступенчатый редуктор</h1>
+    <p class="sub">Одна пара шестерён даёт небольшое передаточное число, иначе колесо выйдет огромным. Поэтому ступени ставят друг за другом — и их передаточные числа перемножаются. Соберите редуктор из шестерён набора с модулем 1 мм, как в LEGO Technic.</p>
+  </header>
+  <!--@LADDER:2@-->
+  <div class="tabs" role="tablist" aria-label="Режим">
+    <button class="tab" role="tab" id="t-ex" data-mode="ex">Исследовать</button>
+    <button class="tab" role="tab" id="t-task" data-mode="task">Задача</button>
+    <button class="tab" role="tab" id="t-game" data-mode="game">Игра «Собери i»</button>
+  </div>
+
+  <div class="lab">
+    <div class="stage">
+      <div class="btns"><button class="b ghost" id="play">Пуск</button></div>
+      <canvas id="cv" class="scene" aria-label="Шестерни редуктора, вид вдоль валов"></canvas>
+      <div class="legend"><span>колёса одной ступени — один цвет</span><span>шестерни на общем валу — общий центр (стоят в разных плоскостях)</span><span>стрелки — направление вращения</span><span>анимация замедлена</span></div>
+    </div>
+
+    <aside class="panel">
+      <div id="builder" style="display:grid;gap:10px">
+        <h2 id="bTitle">Сборка</h2>
+        <div class="seg" role="group" aria-label="Число ступеней" id="kSeg"><button data-k="1" aria-pressed="false">1 ступень</button><button data-k="2" aria-pressed="false">2 ступени</button><button data-k="3" aria-pressed="true">3 ступени</button></div>
+        <div class="stg" id="st1"><b>1</b><select class="sel" id="a1" aria-label="Ступень 1, ведущая шестерня"></select><span>→</span><select class="sel" id="b1" aria-label="Ступень 1, ведомое колесо"></select></div>
+        <div class="stg" id="st2"><b>2</b><select class="sel" id="a2" aria-label="Ступень 2, ведущая шестерня"></select><span>→</span><select class="sel" id="b2" aria-label="Ступень 2, ведомое колесо"></select></div>
+        <div class="stg" id="st3"><b>3</b><select class="sel" id="a3" aria-label="Ступень 3, ведущая шестерня"></select><span>→</span><select class="sel" id="b3" aria-label="Ступень 3, ведомое колесо"></select></div>
+        <p class="note">Слева — ведущая шестерня ступени, справа — ведомое колесо. Ведомое колесо ступени и ведущая шестерня следующей сидят на одном валу.</p>
+      </div>
+
+      <!-- ============ Исследовать ============ -->
+      <section data-pane="ex">
+        <div class="ctl"><label for="nin"><span>Частота входного вала</span><output id="ninO"></output></label><input id="nin" type="range" min="60" max="3000" step="60" value="1800"></div>
+        <div class="ctl"><label for="min"><span>Момент на входе</span><output id="minO"></output></label><input id="min" type="range" min="0.01" max="0.5" step="0.01" value="0.05"></div>
+        <div class="ctl"><label for="eta"><span>КПД одной ступени</span><output id="etaO"></output></label><input id="eta" type="range" min="0.85" max="0.99" step="0.01" value="0.95"></div>
+        <dl class="read" id="rd"></dl>
+        <p class="note"><b>Исследование.</b> Соберите i = 25 одной ступенью и двумя. Сравните диаметр самого большого колеса и общий КПД. Как направление выхода зависит от числа ступеней?</p>
+      </section>
+
+      <!-- ============ Задача ============ -->
+      <section data-pane="task" class="task" hidden>
+        <h2>Задача</h2>
+        <div class="seg" role="group" aria-label="Номер задачи" id="tkSeg"><button data-tk="1" aria-pressed="true">№ 1</button><button data-tk="2" aria-pressed="false">№ 2</button><button data-tk="3" aria-pressed="false">№ 3</button></div>
+        <p id="tkD"></p>
+        <p id="tkQ"></p>
+        <div class="field"><label for="tkA" id="tkL">Ответ</label><input id="tkA" inputmode="decimal" autocomplete="off"><span id="tkU"></span></div>
+        <div class="btns"><button class="b" id="tkCheck">Проверить</button><button class="b ghost" id="tkHint">Подсказка (0/3)</button></div>
+        <div class="msg" id="tkMsg" role="status" aria-live="polite" hidden></div>
+        <div id="tkHints" style="display:grid;gap:6px"></div>
+        <div class="svo" id="tkSvo" hidden></div>
+      </section>
+
+      <!-- ============ Игра ============ -->
+      <section data-pane="game" hidden>
+        <h2>Собери передаточное число</h2>
+        <div class="score" id="gScore"></div>
+        <p id="gQ"></p>
+        <p class="note">Не больше трёх ступеней, шестерни только из набора 8, 12, 16, 20, 24, 36, 40 зубьев. Если собрать нельзя — «Невозможно».</p>
+        <div class="btns"><button class="b" id="gCheck">Проверить сборку</button><button class="b warn" id="gNo">Невозможно</button><button class="b ghost" id="gNext">Следующее</button></div>
+        <div class="msg" id="gMsg" role="status" aria-live="polite" hidden></div>
+        <dl class="read" id="gRd"></dl>
+      </section>
+    </aside>
+  </div>
+
+  <section class="theory">
+    <h2>Что здесь происходит</h2>
+    <p><b>Ступень</b> — одна пара зацепляющихся колёс. Её передаточное число <span class="f">i<sub>k</sub> = z<sub>ведомого</sub> / z<sub>ведущего</sub></span>. Ведомое колесо ступени и ведущая шестерня следующей сидят на одном валу и вращаются вместе, поэтому общее передаточное число — <b>произведение</b>, а не сумма:</p>
+    <div class="fb"><span>i = i<sub>1</sub> · i<sub>2</sub> · i<sub>3</sub></span><span>n<sub>вых</sub> = n<sub>вх</sub> / i</span><span>η = η<sub>1</sub> · η<sub>2</sub> · η<sub>3</sub></span><span>M<sub>вых</sub> = M<sub>вх</sub> · i · η</span></div>
+    <p>Каждое внешнее зацепление меняет направление вращения: при нечётном числе ступеней выход крутится навстречу входу. <b>Модуль</b> <span class="f">m = d / z</span> — размер зуба в миллиметрах; зацепляются только колёса с одинаковым модулем, межосевое расстояние ступени <span class="f">a = m (z<sub>1</sub> + z<sub>2</sub>) / 2</span>. У шестерён LEGO Technic m = 1 мм: колесо на 24 зуба — 24 мм, ровно три шага по 8 мм.</p>
+    <p><b>Почему не одной парой.</b> Шестерню меньше 8–12 зубьев не сделать: зуб подрезается. Значит, i = 125 одной ступенью — колесо на 1 000 зубьев диаметром около метра. Три ступени по 5 дают то же самое с колёсами по 40 мм. Цена — по несколько процентов КПД на каждой ступени и люфт, который копится от ступени к ступени.</p>
+    <h3>Где встречается</h3>
+    <ul>
+      <li><b>Часы:</b> от минутной стрелки к часовой нужно 12 : 1 — обычно двумя ступенями, например 3 × 4.</li>
+      <li><b>Сервопривод SG90</b> из наборов Arduino: моторчик и несколько ступеней пластиковых шестерён в корпусе со спичечный коробок.</li>
+      <li><b>Мотор-редуктор TT</b> (жёлтый, 1 : 48), лебёдки, механические игрушки с заводом, кухонные миксеры.</li>
+      <li><b>LEGO Technic:</b> набор 8, 12, 16, 20, 24, 36, 40 зубьев — все передаточные числа раскладываются на 2, 3 и 5. Поэтому 7, 11 или 13 из набора не собрать никаким числом ступеней.</li>
+    </ul>
+  </section>
+  <p class="foot">Тренажёр открывается без входа и ничего не отправляет · <a href="https://metaphys23.github.io/inzheneriya/">Инженерия на Тезаурусе</a></p>
+</div>
+<script>
+/*@CORE_JS@*/
+</script>
+<script>
+(function(){
+'use strict';
+const Z = [8, 12, 16, 20, 24, 36, 40];
+const row = (a, b, c) => '<dt>' + a + '</dt><dd' + (c ? ' class="' + c + '"' : '') + '>' + b + '</dd>';
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+function frac(num, den){ const g = gcd(num, den); num /= g; den /= g; return den === 1 ? String(num) : num + '/' + den; }
+
+// ---------- сборка ----------
+const B = {k: 3, st: [[8, 24], [12, 36], [16, 40]]};
+for (let j = 1; j <= 3; j++) ['a', 'b'].forEach((s, q) => {
+  const el = RC.$('#' + s + j); el.innerHTML = Z.map(z => '<option value="' + z + '">' + z + ' зуб.</option>').join('');
+  el.value = B.st[j - 1][q]; el.addEventListener('change', () => { B.st[j - 1][q] = +el.value; upd(); });
+});
+const kSeg = RC.seg(RC.$('#kSeg'), 'k', k => { B.k = +k; upd(); });
+function setBuild(k, st){ B.k = k; B.st = st.map(x => x.slice()); kSeg.set(String(k)); for (let j = 1; j <= 3; j++) { RC.$('#a' + j).value = B.st[j - 1][0]; RC.$('#b' + j).value = B.st[j - 1][1]; } }
+function calc(b){
+  let num = 1, den = 1; const per = [];
+  for (let j = 0; j < b.k; j++) { num *= b.st[j][1]; den *= b.st[j][0]; per.push(b.st[j][1] / b.st[j][0]); }
+  const gg = gcd(num, den); num /= gg; den /= gg;
+  const i = num / den; let L = 0, dmax = 0;
+  for (let j = 0; j < b.k; j++) { L += (b.st[j][0] + b.st[j][1]) / 2; dmax = Math.max(dmax, b.st[j][0] + 2, b.st[j][1] + 2); }
+  return {i, num, den, per, dir: b.k % 2 ? -1 : 1, L, dmax};
+}
+
+// ---------- сцена ----------
+const cv = RC.$('#cv'); let th0 = 0, view = {show: true};
+const W_IN = 2 * Math.PI * 0.3;    // визуальная скорость входного вала, рад/с
+function draw(dt){
+  const {ctx, W, H} = RC.prep(cv), C = RC.col(), b = B, c = calc(b);
+  th0 += W_IN * dt;
+  // центры валов: зигзаг ±28°
+  const cen = [[0, 0]]; let ang = 0;
+  for (let j = 0; j < b.k; j++) { const a = (b.st[j][0] + b.st[j][1]) / 2; ang = j % 2 ? 0.5 : -0.5; const p = cen[j]; cen.push([p[0] + a * Math.cos(ang), p[1] + a * Math.sin(ang)]); }
+  let xmin = 1e9, xmax = -1e9, ymin = 1e9, ymax = -1e9;
+  cen.forEach((p, j) => { const rr = (Math.max(j > 0 ? b.st[j - 1][1] : 0, j < b.k ? b.st[j][0] : 0) + 2) / 2; xmin = Math.min(xmin, p[0] - rr); xmax = Math.max(xmax, p[0] + rr); ymin = Math.min(ymin, p[1] - rr); ymax = Math.max(ymax, p[1] + rr); });
+  const sc = Math.min((W - 40) / (xmax - xmin), (H - 80) / (ymax - ymin), 9), ox = (W - (xmax - xmin) * sc) / 2 - xmin * sc, oy = 32 + (H - 64 - (ymax - ymin) * sc) / 2 - ymin * sc;
+  const P = j => [ox + cen[j][0] * sc, oy + cen[j][1] * sc];
+  const cols = [C.f1, C.f2, C.res];
+  let th = th0; const ths = [th0];
+  for (let j = 0; j < b.k; j++) {
+    const [x1, y1] = P(j), [x2, y2] = P(j + 1), al = Math.atan2(y2 - y1, x2 - x1);
+    const za = b.st[j][0], zb = b.st[j][1], thb = RC.meshExt(th, za, zb, al);
+    RC.gear(ctx, x2, y2, zb, zb * sc / 2, thb, cols[j] + '30', cols[j], {noHub: false});
+    RC.gear(ctx, x1, y1, za, za * sc / 2, th, cols[j] + 'B0', cols[j], {});
+    th = thb; ths.push(th);
+  }
+  // стрелки направления, метки валов и строка частот внизу
+  const ns = [];
+  for (let j = 0; j <= b.k; j++) {
+    const [x, y] = P(j), dir = j % 2 ? -1 : 1, rr = Math.max(14, (j < b.k ? b.st[j][0] : b.st[j - 1][1]) * sc / 2 * 0.45);
+    if (j === 0 || j === b.k) RC.rotArrow(ctx, x, y, rr, dir, j === 0 ? C.ink : C.bad);
+    const lab = j === 0 ? 'вх' : j === b.k ? 'вых' : String(j);
+    ctx.font = '700 12px ' + C.mono; const tw = ctx.measureText(lab).width + 8;
+    ctx.fillStyle = C.sheet; RC.rrect(ctx, x + 6, y - 22, tw, 16, 4); ctx.fill(); ctx.strokeStyle = C.ink2; ctx.lineWidth = 1; ctx.stroke();
+    RC.text(ctx, lab, x + 6 + tw / 2, y - 14, {align: 'center', size: 12, mono: true, weight: 700, color: j === b.k ? C.bad : C.ink});
+    ns.push((j === 0 ? 'вх ' : j === b.k ? 'вых ' : 'вал ' + j + ': ') + RC.sig(nin() / [1].concat(c.per).slice(0, j + 1).reduce((a, q) => a * q, 1), 3));
+  }
+  if (view.show) { let line = ns.join('  →  ') + ' об/мин'; ctx.font = '500 12px ' + C.mono;
+    if (ctx.measureText(line).width > W - 24) line = 'об/мин: ' + ns.map(x => x.replace(/^[^\d]*/, '')).join(' → ');
+    RC.text(ctx, line, 12, H - 12, {size: 12, mono: true, color: C.ink2}); }
+  if (view.show) RC.text(ctx, 'i = ' + (c.den === 1 ? c.num : frac(c.num, c.den)) + (c.den !== 1 ? ' = ' + RC.sig(c.i, 4) : '') + '   ·   выход крутится ' + (c.dir < 0 ? 'навстречу входу' : 'так же, как вход'), 12, 16, {weight: 700, size: 14});
+  else RC.text(ctx, 'i = ?', 12, 16, {weight: 700, size: 14});
+}
+const loop = RC.loop(draw); RC.playBtn(RC.$('#play'), loop);
+
+// ---------- Исследовать ----------
+const sn = RC.slider('nin', v => RC.fmt(v, 0) + ' об/мин', upd), sM = RC.slider('min', v => RC.fmt(v, 2) + ' Н·м', upd), se = RC.slider('eta', v => RC.fmt(v, 2), upd);
+let nin = () => sn.get();
+function upd(){
+  const c = calc(B); ['st2', 'st3'].forEach((id, q) => RC.$('#' + id).hidden = B.k < q + 2);
+  if (mode === 'ex') {
+    const eta = Math.pow(se.get(), B.k), z1 = 8 * c.i;
+    RC.$('#rd').innerHTML = row('Ступени', c.per.map(q => RC.sig(q, 3)).join(' × ')) + row('Общее i', c.den === 1 ? String(c.num) : frac(c.num, c.den) + ' ≈ ' + RC.sig(c.i, 4)) +
+      row('Выход', c.dir < 0 ? 'навстречу входу' : 'как вход') + row('n<sub>вых</sub>', RC.sig(sn.get() / c.i, 4) + ' об/мин') +
+      row('КПД редуктора', RC.fmt(eta * 100, 1) + ' %') + row('M<sub>вых</sub>', RC.sig(sM.get() * c.i * eta, 3) + ' Н·м') +
+      row('Длина по осям', RC.fmt(c.L, 0) + ' мм') + row('Наибольшее колесо', '⌀ ' + RC.fmt(c.dmax, 0) + ' мм') +
+      row('Одной ступенью от 8 зуб.', c.i >= 1 ? 'z = ' + RC.sig(z1, 3) + ', ⌀ ' + RC.fmt(z1 + 2, 0) + ' мм' : '—', z1 + 2 > c.dmax * 1.5 ? 'w' : '');
+  }
+  loop.redraw();
+}
+
+// ---------- Задача ----------
+const TB = [[8, 24], [12, 36], [16, 40]];
+const TK = {
+  1: {q: '<b>№ 1.</b> Мотор крутит входной вал с частотой 1 800 об/мин. С какой частотой вращается выходной вал?', lab: 'n<sub>вых</sub> =', unit: 'об/мин', ans: 80, tol: 0.01,
+      hints: ['Найдите передаточное число каждой ступени: во сколько раз ведомое колесо больше ведущей шестерни по числу зубьев.',
+              'Ступени стоят друг за другом: вал 1 крутится в i<sub>1</sub> раз медленнее входа, вал 2 — ещё в i<sub>2</sub> раз медленнее… <div class="fb"><span>i = i<sub>1</sub> · i<sub>2</sub> · i<sub>3</sub></span><span>n<sub>вых</sub> = n<sub>вх</sub> / i</span></div>',
+              'i<sub>1</sub> = 24/8 = 3, i<sub>2</sub> = 36/12 = 3, i<sub>3</sub> = 40/16 = 2,5.'],
+      svo: '<b>Свойство.</b> Передаточные числа ступеней <b>перемножаются</b>: 3 · 3 · 2,5 = 22,5. Три скромные ступени дают то, для чего одной паре понадобилось бы колесо на 180 зубьев.'},
+  2: {q: '<b>№ 2.</b> На входе момент 0,05 Н·м, КПД каждой ступени 0,95. Какой момент на выходном валу?', lab: 'M<sub>вых</sub> =', unit: 'Н·м', ans: 0.05 * 22.5 * Math.pow(0.95, 3), tol: 0.01,
+      hints: ['Без потерь момент вырос бы во столько же раз, во сколько упала частота: мощность <span class="f">P = M·ω</span> сохраняется.',
+              'Потери копятся: на каждой ступени теряется 5 %. <div class="fb"><span>η = η<sub>1</sub> · η<sub>2</sub> · η<sub>3</sub></span><span>M<sub>вых</sub> = M<sub>вх</sub> · i · η</span></div>',
+              'i = 22,5 (из задачи № 1), η = 0,95<sup>3</sup> ≈ 0,857.'],
+      svo: '<b>Свойство.</b> КПД ступеней тоже перемножаются: три ступени по 95 % — это 85,7 %, а шесть — уже 73,5 %. Поэтому ступеней ставят не больше, чем нужно.'},
+  3: {q: '<b>№ 3.</b> Из того же набора (8, 12, 16, 20, 24, 36, 40 зубьев) нужно собрать i = 27. Какое наименьшее число ступеней для этого нужно?', lab: 'ступеней:', unit: '', ans: 3, tol: 0, int: true,
+      hints: ['Какое наибольшее передаточное число даёт одна ступень из этого набора?',
+              'Одна ступень — не больше 40 / 8 = 5. Две ступени — не больше 5 · 5 = 25.',
+              'Разложите 27 на множители: 27 = 3 · 3 · 3. Есть ли в наборе пары с i = 3?'],
+      svo: '<b>Свойство.</b> С наибольшим числом ступени i<sub>max</sub> редуктор из k ступеней даёт не больше i<sub>max</sub><sup>k</sup>. Отсюда наименьшее число ступеней: <span class="f">k ≥ lg i / lg i<sub>max</sub></span>.'}
+};
+let tk = '1';
+const hints = RC.hints(RC.$('#tkHint'), RC.$('#tkHints'));
+RC.seg(RC.$('#tkSeg'), 'tk', k => { tk = k; tkShow(); });
+function tkShow(){
+  const T = TK[tk]; RC.$('#tkQ').innerHTML = T.q; RC.$('#tkL').innerHTML = T.lab; RC.$('#tkU').textContent = T.unit; RC.$('#tkA').value = '';
+  RC.$('#tkD').innerHTML = tk === '3' ? '' : 'Редуктор из трёх ступеней: 8 → 24, 12 → 36, 16 → 40 зубьев (слева ведущая шестерня).';
+  RC.msg(RC.$('#tkMsg'), '', ''); hints.reset(T.hints); RC.$('#tkSvo').hidden = true;
+  setBuild(3, tk === '3' ? [[8, 40], [8, 40], [8, 40]] : TB); view.show = false; nin = () => 1800; upd();
+}
+function tkCheck(){
+  const T = TK[tk], a = RC.num(RC.$('#tkA').value), el = RC.$('#tkMsg');
+  if (!isFinite(a) || a <= 0) { RC.msg(el, 'bad', 'Введите положительное число (десятичная запятая).'); return; }
+  const good = T.int ? a === T.ans : RC.near(a, T.ans, T.tol);
+  if (good) { RC.msg(el, 'ok', 'Верно!' + (tk === '3' ? ' Например, 8 → 24 три раза.' : '')); RC.$('#tkSvo').innerHTML = T.svo; RC.$('#tkSvo').hidden = false; view.show = true;
+    if (tk === '3') setBuild(3, [[8, 24], [8, 24], [12, 36]]); upd(); return; }
+  let t = 'Не сходится. ';
+  if (tk === '1') {
+    if (RC.near(a, 1800 / 8.5, 0.01)) t = 'Вы сложили передаточные числа: 3 + 3 + 2,5. Но вал 2 крутится в 3 раза медленнее вала 1, а тот — в 3 раза медленнее входа: числа <b>перемножаются</b>.';
+    else if (RC.near(a, 1800 * 22.5, 0.01)) t = 'Вышло быстрее входа. Колесо с бо́льшим числом зубьев крутится медленнее: здесь ведомые колёса больше ведущих.';
+    else if (RC.near(a, 600, 0.01)) t = 'Это частота вала после первой ступени. Дальше ещё две.';
+    else if (RC.near(a, 200, 0.01)) t = 'Это частота вала после второй ступени. Осталась третья: 40/16.';
+  } else if (tk === '2') {
+    if (RC.near(a, 0.05 * 22.5, 0.01)) t = 'Это момент без потерь. На каждой из трёх ступеней теряется 5 %.';
+    else if (RC.near(a, 0.05 * 22.5 * 0.95, 0.01)) t = 'КПД учтён один раз, а ступеней три: η = 0,95 · 0,95 · 0,95.';
+    else if (RC.near(a, 0.05 * 22.5 * 0.85, 0.01)) t = 'КПД не складываются и не вычитаются: 0,95³ ≈ 0,857, а не 1 − 3·0,05.';
+    else if (RC.near(a, 0.05 / 22.5, 0.02) || RC.near(a, 0.05 / 22.5 * 0.857, 0.02)) t = 'Момент на выходе не меньше, а больше входного: редуктор проигрывает в скорости и выигрывает в моменте.';
+  } else {
+    if (a === 2) t = 'Две ступени дают не больше 5 · 5 = 25 — до 27 не хватает. Проверьте: какое наибольшее i у одной ступени?';
+    else if (a === 1) t = 'Одной ступенью: 8 · 27 = 216 зубьев — такого колеса в наборе нет.';
+    else if (a > 3) t = 'Собрать можно и так, но меньшим числом ступеней тоже получится.';
+  }
+  RC.msg(el, 'bad', t);
+}
+RC.$('#tkCheck').addEventListener('click', tkCheck);
+RC.$('#tkA').addEventListener('keydown', e => { if (e.key === 'Enter') tkCheck(); });
+
+// ---------- Игра ----------
+// все передаточные числа до трёх ступеней (как дроби num/den)
+const ST = []; Z.forEach(a => Z.forEach(b => ST.push([b, a])));
+function reachable(t){           // t = [num, den]; возвращает пример сборки или null
+  const eq = (n, d) => n * t[1] === d * t[0];
+  for (const s1 of ST) { if (eq(s1[0], s1[1])) return [[s1[1], s1[0]]];
+    for (const s2 of ST) { if (eq(s1[0] * s2[0], s1[1] * s2[1])) return [[s1[1], s1[0]], [s2[1], s2[0]]];
+      for (const s3 of ST) if (eq(s1[0] * s2[0] * s3[0], s1[1] * s2[1] * s3[1])) return [[s1[1], s1[0]], [s2[1], s2[0]], [s3[1], s3[0]]]; } }
+  return null;
+}
+const TG = [[2,1],[3,1],[4,1],[5,1],[6,1],[15,2],[8,1],[9,1],[10,1],[12,1],[15,1],[18,1],[20,1],[25,1],[27,1],[30,1],[45,1],[50,1],[75,1],[125,1],[1,3],[7,1],[11,1],[13,1],[14,1],[21,1],[35,1],[64,1],[100,1],[150,1]];
+const score = RC.score(RC.$('#gScore')); let G = null;
+const tStr = t => t[1] === 1 ? String(t[0]) : t[0] + '/' + t[1];
+function gNew(){
+  let t; do t = RC.pick(TG); while (G && tStr(t) === tStr(G.t));
+  G = {t, ex: reachable(t), done: false};
+  RC.$('#gQ').innerHTML = t[0] < t[1] ? 'Нужна <b>повышающая</b> передача: выход должен крутиться в ' + t[1] + ' раза быстрее входа, i = <b>' + tStr(t) + '</b>.' : 'Соберите редуктор с передаточным числом <b>i = ' + tStr(t) + '</b>.';
+  RC.msg(RC.$('#gMsg'), '', ''); RC.$('#gRd').innerHTML = ''; view.show = false;
+  setBuild(1, [[8, 8], [8, 8], [8, 8]]); upd();
+}
+function why(t){
+  const v = t[0] / t[1];
+  if (v > 125) return 'Одна ступень даёт не больше 40/8 = 5, три — не больше 5³ = 125.';
+  if ([7, 11, 13].some(p => t[0] % p === 0)) return 'Все числа зубьев набора раскладываются на 2, 3 и 5. Множителя ' + [7, 11, 13].find(p => t[0] % p === 0) + ' не получить никакой парой.';
+  return 'Тремя ступенями не выходит: каждая ступень даёт множители не больше 5, а здесь нужно больше трёх ступеней (например, 4 = 2 · 2 само занимает две).';
+}
+function gAns(no){
+  if (!G || G.done) return;
+  const c = calc(B), built = c.num * G.t[1] === c.den * G.t[0];
+  let good, t;
+  if (no) { good = !G.ex; t = good ? 'Верно: невозможно. ' + why(G.t) : 'Собрать можно, например: ' + G.ex.map(s => s[0] + ' → ' + s[1]).join(', ') + '.'; }
+  else { good = built; t = good ? 'Верно! i = ' + tStr(G.t) + '. ' + (G.ex && G.ex.length < B.k ? 'Можно и за ' + G.ex.length + ' ступ.: ' + G.ex.map(s => s[0] + ' → ' + s[1]).join(', ') + '.' : '') :
+      'У вашей сборки i = ' + (c.den === 1 ? c.num : frac(c.num, c.den) + ' ≈ ' + RC.sig(c.i, 3)) + ', а нужно ' + tStr(G.t) + '. ' + (G.ex ? 'Попробуйте ещё — проверка без штрафа.' : ''); }
+  if (!no && !good && G.ex) { RC.msg(RC.$('#gMsg'), 'bad', t); view.show = true; loop.redraw(); return; }   // неверная сборка — можно исправить
+  G.done = true; score.add(good); RC.msg(RC.$('#gMsg'), good ? 'ok' : 'bad', t); view.show = true;
+  if (!good && G.ex) setBuild(G.ex.length, G.ex.concat([[8, 8], [8, 8]]).slice(0, 3));
+  upd();
+}
+RC.$('#gCheck').addEventListener('click', () => gAns(false));
+RC.$('#gNo').addEventListener('click', () => gAns(true));
+RC.$('#gNext').addEventListener('click', gNew);
+
+let mode = '';
+const tabs = RC.tabs(k => { mode = k; RC.$('#builder').hidden = k === 'task'; nin = () => sn.get();
+  if (k === 'ex') { view.show = true; upd(); } else if (k === 'task') tkShow(); else gNew(); });
+})();
+</script>
+</body></html>

@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex"><link rel="icon" href="data:,">
+<title>Планетарный редуктор: соберётся ли?</title>
+<style>
+/*@CORE_CSS@*/
+canvas.sqr{aspect-ratio:1/1;max-height:640px;margin:0 auto}
+.chk{display:grid;gap:4px;font-size:14px}
+.chk div{display:grid;grid-template-columns:22px 1fr;gap:6px}
+.chk .y{color:var(--ok)} .chk .n{color:var(--bad)}
+</style></head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">инженерия · редукторы · ступень 4 из 5</div>
+    <h1>Планетарный редуктор: соберётся ли?</h1>
+    <p class="sub">Солнце в центре, вокруг — сателлиты на водиле, снаружи — корона с внутренними зубьями. Вход и выход на одной оси, нагрузку делят несколько сателлитов. Но не всякий набор чисел зубьев можно собрать.</p>
+  </header>
+  <!--@LADDER:4@-->
+  <div class="tabs" role="tablist" aria-label="Режим">
+    <button class="tab" role="tab" id="t-ex" data-mode="ex">Исследовать</button>
+    <button class="tab" role="tab" id="t-task" data-mode="task">Задача</button>
+    <button class="tab" role="tab" id="t-game" data-mode="game">Игра «Собери планетарку»</button>
+  </div>
+
+  <div class="lab">
+    <div class="stage">
+      <div class="btns"><button class="b ghost" id="play">Пуск</button></div>
+      <canvas id="cv" class="sqr" aria-label="Планетарный ряд: солнце, сателлиты, водило, корона"></canvas>
+      <div class="legend"><span><i style="background:var(--f1)"></i>солнце</span><span><i style="background:var(--res)"></i>сателлиты</span><span><i style="background:var(--f3)"></i>водило</span><span><i style="background:var(--steel)"></i>корона</span><span><i style="background:var(--bad)"></i>не входит в зацепление или задевает</span><span>анимация замедлена</span></div>
+    </div>
+
+    <aside class="panel">
+      <div id="builder" style="display:grid;gap:10px">
+        <h2>Сборка</h2>
+        <div class="ctl"><label for="zs"><span>Зубьев солнца z<sub>с</sub></span><output id="zsO"></output></label><input id="zs" type="range" min="12" max="40" step="1" value="12"></div>
+        <div class="ctl"><label for="zp"><span>Зубьев сателлита z<sub>сат</sub></span><output id="zpO"></output></label><input id="zp" type="range" min="12" max="40" step="1" value="18"></div>
+        <div class="ctl"><label for="zr"><span>Зубьев короны z<sub>к</sub></span><output id="zrO"></output></label><input id="zr" type="range" min="36" max="120" step="1" value="48"></div>
+        <div class="ctl"><label for="nn"><span>Сателлитов N</span><output id="nnO"></output></label><input id="nn" type="range" min="2" max="6" step="1" value="3"></div>
+        <div class="btns"><button class="b ghost" id="fit">Подогнать корону: z<sub>к</sub> = z<sub>с</sub> + 2z<sub>сат</sub></button></div>
+        <div class="chk" id="chk"></div>
+      </div>
+
+      <!-- ============ Исследовать ============ -->
+      <section data-pane="ex">
+        <h3>Что стоит, что крутим</h3>
+        <div class="seg" role="group" aria-label="Неподвижное звено" id="fxSeg"><button data-fx="r" aria-pressed="true">стоит корона</button><button data-fx="c" aria-pressed="false">стоит водило</button><button data-fx="s" aria-pressed="false">стоит солнце</button></div>
+        <div class="btns"><button class="b ghost" id="swap">Поменять вход и выход</button></div>
+        <div class="ctl"><label for="nin"><span>Частота входа</span><output id="ninO"></output></label><input id="nin" type="range" min="100" max="3000" step="100" value="1500"></div>
+        <dl class="read" id="rd"></dl>
+        <p class="note"><b>Исследование.</b> Какой режим даёт самое большое i, какой — реверс, какой — ускорение? Сколько сателлитов поместится при z<sub>с</sub> = 12, z<sub>сат</sub> = 18?</p>
+      </section>
+
+      <!-- ============ Задача ============ -->
+      <section data-pane="task" class="task" hidden>
+        <h2>Задача</h2>
+        <div class="seg" role="group" aria-label="Номер задачи" id="tkSeg"><button data-tk="1" aria-pressed="true">№ 1</button><button data-tk="2" aria-pressed="false">№ 2</button><button data-tk="3" aria-pressed="false">№ 3</button></div>
+        <p>Мотор-редуктор робота: корона неподвижна, мотор крутит солнце, выход — водило. Нужно i = 5. Солнце z<sub>с</sub> = 12 зубьев, все колёса с одним модулем.</p>
+        <p id="tkQ"></p>
+        <div class="field"><label for="tkA" id="tkL">Ответ</label><input id="tkA" inputmode="numeric" autocomplete="off"><span id="tkU"></span></div>
+        <div class="btns"><button class="b" id="tkCheck">Проверить</button><button class="b ghost" id="tkHint">Подсказка (0/3)</button></div>
+        <div class="msg" id="tkMsg" role="status" aria-live="polite" hidden></div>
+        <div id="tkHints" style="display:grid;gap:6px"></div>
+        <div class="svo" id="tkSvo" hidden></div>
+      </section>
+
+      <!-- ============ Игра ============ -->
+      <section data-pane="game" hidden>
+        <h2>Собери планетарку</h2>
+        <div class="score" id="gScore"></div>
+        <p id="gQ"></p>
+        <p class="note">Корона стоит, вход — солнце, выход — водило. Зубьев у солнца и сателлита — от 12 до 40. Соберите ряд, который выполняет все три условия, или нажмите «Невозможно».</p>
+        <div class="btns"><button class="b" id="gCheck">Проверить сборку</button><button class="b warn" id="gNo">Невозможно</button><button class="b ghost" id="gNext">Следующее</button></div>
+        <div class="msg" id="gMsg" role="status" aria-live="polite" hidden></div>
+      </section>
+    </aside>
+  </div>
+
+  <section class="theory">
+    <h2>Что здесь происходит</h2>
+    <p><b>Планетарный ряд</b> — три звена на одной оси: солнце, водило с сателлитами и корона (колесо с внутренними зубьями). Одно звено держат неподвижным, на другое подают вращение, с третьего снимают. Ключ к расчёту — <b>формула Виллиса</b>: в системе отсчёта водила оси сателлитов неподвижны, и ряд становится обычной передачей с паразитным колесом:</p>
+    <div class="fb"><span>(ω<sub>с</sub> − ω<sub>в</sub>) / (ω<sub>к</sub> − ω<sub>в</sub>) = − z<sub>к</sub> / z<sub>с</sub></span><span>корона стоит, солнце → водило:  i = 1 + z<sub>к</sub> / z<sub>с</sub></span><span>водило стоит, солнце → корона:  i = − z<sub>к</sub> / z<sub>с</sub>  (реверс)</span><span>солнце стоит, корона → водило:  i = 1 + z<sub>с</sub> / z<sub>к</sub></span></div>
+    <h3>Три условия сборки (модуль один у всех колёс)</h3>
+    <div class="tblwrap"><table class="cmp"><thead><tr><th>Условие</th><th>Формула</th><th>Что будет, если нарушить</th></tr></thead><tbody>
+      <tr><td>Соосность</td><td class="f">z<sub>к</sub> = z<sub>с</sub> + 2 z<sub>сат</sub></td><td>сателлит не достаёт до короны или врезается в неё</td></tr>
+      <tr><td>Сборка (равные углы)</td><td class="f">(z<sub>с</sub> + z<sub>к</sub>) / N — целое</td><td>первый сателлит встаёт, а следующие упираются зубом в зуб</td></tr>
+      <tr><td>Соседство</td><td class="f">(z<sub>с</sub> + z<sub>сат</sub>) · sin(180°/N) > z<sub>сат</sub> + 2</td><td>соседние сателлиты задевают друг друга вершинами зубьев</td></tr>
+    </tbody></table></div>
+    <h3>Где встречается</h3>
+    <ul>
+      <li><b>Шуруповёрты и дрели</b> — две-три планетарные ступени из пластика и стали прямо за мотором; муфта момента — это «трещотка» на короне.</li>
+      <li><b>Автоматические коробки передач</b>: переключение — это смена того, какое звено держит тормоз. Классика — ряды Симпсона и Равиньо.</li>
+      <li><b>Велосипедные втулки</b> Shimano Nexus, Sturmey-Archer, планетарные редукторы <b>марсоходов</b> и мотор-колёс.</li>
+      <li><b>Сервоприводы роботов</b>: несколько сателлитов делят нагрузку, корпус короче, чем у ряда цилиндрических ступеней.</li>
+    </ul>
+    <p class="note">Наименьшее число зубьев здесь — 12; в реальных стальных передачах без коррекции — 17, иначе зуб подрезается. Расчёт — без учёта КПД.</p>
+  </section>
+  <p class="foot">Тренажёр открывается без входа и ничего не отправляет · <a href="https://metaphys23.github.io/inzheneriya/">Инженерия на Тезаурусе</a></p>
+</div>
+<script>
+/*@CORE_JS@*/
+</script>
+<script>
+(function(){
+'use strict';
+const row = (a, b, c) => '<dt>' + a + '</dt><dd' + (c ? ' class="' + c + '"' : '') + '>' + b + '</dd>';
+const NAME = {s: 'солнце', c: 'водило', r: 'корона'};
+function conds(b){
+  const co = b.zr === b.zs + 2 * b.zp, asm = (b.zs + b.zr) % b.N === 0;
+  const gap = (b.zs + b.zp) * Math.sin(Math.PI / b.N) - (b.zp + 2);
+  return {co, asm, nb: gap > 0, gap};
+}
+// угловые скорости при входе 1 рад/с (Виллис)
+function kin(b, fx, inp){
+  const out = ['s', 'c', 'r'].find(x => x !== fx && x !== inp), k = b.zr / b.zs;
+  const w = {s: 0, c: 0, r: 0}; w[inp] = 1;
+  const f = x => { const ww = Object.assign({}, w); ww[out] = x; return (ww.s - ww.c) + k * (ww.r - ww.c); };
+  const a = f(0), bb = f(1) - a; w[out] = -a / bb;
+  w.p = w.c - (b.zs / b.zp) * (w.s - w.c);    // абсолютная угловая скорость сателлита
+  return {w, out, i: 1 / w[out]};
+}
+// ---------- состояние ----------
+const B = {zs: 12, zp: 18, zr: 48, N: 3}, V = {fx: 'r', inp: 's', hide: false, frozen: false};
+let ang = null;
+function resetAngles(){
+  const thc = -Math.PI / 2, ths = 0, thp0 = RC.meshExt(ths, B.zs, B.zp, thc);
+  const thr = thc - (((thc - thp0) * B.zp / (2 * Math.PI)) - 0.5) * 2 * Math.PI / B.zr;
+  ang = {s: ths, c: thc, r: thr};
+}
+// ---------- сцена ----------
+const cv = RC.$('#cv'); const VIS = 2 * Math.PI * 0.12;
+function draw(dt){
+  const {ctx, W, H} = RC.prep(cv), C = RC.col(), b = B, cd = conds(b);
+  if (!ang) resetAngles();
+  const run = cd.co && !V.hide && !V.frozen;
+  if (run) { const k = kin(b, V.fx, V.inp), sc = VIS / Math.max(1, Math.abs(k.w.p - k.w.c) / 3, Math.abs(k.w.s), Math.abs(k.w.r), Math.abs(k.w.c));
+    ang.s += k.w.s * sc * dt; ang.c += k.w.c * sc * dt; ang.r += k.w.r * sc * dt; }
+  const cx = W / 2, cy = H / 2, Rmax = Math.min(W, H) * 0.47, mpx = Rmax / (Math.max(b.zr, b.zs + 2 * b.zp) / 2 + 3.2);
+  const rs = b.zs * mpx / 2, rp = b.zp * mpx / 2, rr = b.zr * mpx / 2, a = (b.zs + b.zp) * mpx / 2;
+  // корона
+  if (!V.hide) RC.ring(ctx, cx, cy, b.zr, rr, ang.r, C.steel + '66', C.ink2, rr + 2.4 * mpx);
+  else { ctx.strokeStyle = C.ink2; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.arc(cx, cy, Rmax * 0.97, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]); }
+  // сателлиты
+  const bad = [];
+  for (let k = 0; k < b.N && !V.hide; k++) {
+    const be = ang.c + 2 * Math.PI * k / b.N, px = cx + a * Math.cos(be), py = cy + a * Math.sin(be);
+    const thp = RC.meshExt(ang.s, b.zs, b.zp, be);
+    let e = ((be - ang.r) * b.zr / (2 * Math.PI) + 0.5) - (be - thp) * b.zp / (2 * Math.PI); e = Math.abs(e - Math.round(e));
+    const clash = !cd.co || e > 0.02 || !cd.nb; if (clash) bad.push(k);
+    RC.gear(ctx, px, py, b.zp, rp, thp, (clash ? C.bad : C.res) + '88', clash ? C.bad : C.res, {});
+  }
+  // водило
+  if (!V.hide) { ctx.strokeStyle = C.f3; ctx.lineWidth = Math.max(4, mpx * 1.2); ctx.lineCap = 'round'; ctx.globalAlpha = 0.85;
+    for (let k = 0; k < b.N; k++) { const be = ang.c + 2 * Math.PI * k / b.N; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + a * Math.cos(be), cy + a * Math.sin(be)); ctx.stroke(); }
+    ctx.globalAlpha = 1; }
+  // солнце
+  RC.gear(ctx, cx, cy, b.zs, rs, ang.s, C.f1 + 'CC', C.f1, {});
+  if (!V.hide) { ctx.fillStyle = C.f3; ctx.beginPath(); ctx.arc(cx, cy, Math.max(5, mpx * 1.4), 0, 2 * Math.PI); ctx.fill(); }
+  // подписи
+  if (V.hide) RC.text(ctx, 'z_к = ?   z_сат = ?', cx, cy + Rmax * 0.6, {align: 'center', size: 15, weight: 700, color: C.ink2});
+  else {
+    let msg = '';
+    if (!cd.co) msg = b.zr > b.zs + 2 * b.zp ? 'не соосно: сателлиты не достают до короны' : 'не соосно: сателлиты врезаются в корону';
+    else if (!cd.nb) msg = 'соседние сателлиты задевают друг друга';
+    else if (!cd.asm) msg = 'сателлиты ' + bad.map(k => k + 1).join(', ') + ' упираются в корону зуб в зуб';
+    if (msg) RC.text(ctx, msg, 10, 14, {color: C.bad, weight: 700, size: 13});
+    else if (!V.frozen) { const k = kin(b, V.fx, V.inp); RC.text(ctx, 'i = ' + RC.sig(k.i, 4) + (k.i < 0 ? '  (реверс)' : Math.abs(k.i) < 1 ? '  (ускоряет)' : ''), 10, 14, {weight: 700, size: 14}); }
+  }
+}
+const loop = RC.loop(draw); RC.playBtn(RC.$('#play'), loop);
+
+// ---------- сборка ----------
+let mode = '';
+const szs = RC.slider('zs', String, bUpd), szp = RC.slider('zp', String, bUpd), szr = RC.slider('zr', String, bUpd), snn = RC.slider('nn', String, bUpd);
+RC.$('#fit').addEventListener('click', () => szr.set(Math.min(120, szs.get() + 2 * szp.get())));
+function setB(zs, zp, zr, N){ szs.el.value = zs; szp.el.value = zp; szr.el.value = zr; snn.el.value = N; RC.refresh(); }
+function chkHtml(b){
+  const c = conds(b), L = (ok, t) => '<div class="' + (ok ? 'y' : 'n') + '"><span>' + (ok ? '✓' : '✗') + '</span><span>' + t + '</span></div>';
+  return L(c.co, 'соосность: z<sub>с</sub> + 2z<sub>сат</sub> = ' + (b.zs + 2 * b.zp) + (c.co ? ' = z<sub>к</sub>' : ' ≠ ' + b.zr)) +
+    L(c.asm, 'сборка: (z<sub>с</sub> + z<sub>к</sub>)/N = ' + (b.zs + b.zr) + '/' + b.N + (c.asm ? ' = ' + (b.zs + b.zr) / b.N : ' — не целое')) +
+    L(c.nb, 'соседство: зазор между вершинами ' + RC.fmt(c.gap, 2) + ' m');
+}
+function bUpd(){
+  B.zs = szs.get(); B.zp = szp.get(); B.zr = szr.get(); B.N = snn.get(); ang = null;
+  RC.$('#chk').innerHTML = chkHtml(B);
+  if (mode === 'ex') exUpd(); loop.redraw();
+}
+
+// ---------- Исследовать ----------
+const fxSeg = RC.seg(RC.$('#fxSeg'), 'fx', k => { V.fx = k; V.inp = k === 's' ? 'r' : 's'; exUpd(); });
+RC.$('#swap').addEventListener('click', () => { V.inp = ['s', 'c', 'r'].find(x => x !== V.fx && x !== V.inp); exUpd(); });
+const sn = RC.slider('nin', v => RC.fmt(v, 0) + ' об/мин', () => exUpd());
+function exUpd(){
+  if (mode !== 'ex') return;
+  const c = conds(B), k = kin(B, V.fx, V.inp), n = sn.get();
+  RC.$('#rd').innerHTML = row('Стоит', NAME[V.fx]) + row('Вход → выход', NAME[V.inp] + ' → ' + NAME[k.out]) +
+    row('Передаточное число i', RC.sig(k.i, 4) + (k.i < 0 ? ' (реверс)' : ''), k.i < 0 ? 'w' : '') + row('Частота выхода', RC.sig(n / k.i, 4) + ' об/мин') +
+    row('Сателлит вокруг своей оси', RC.sig(n * k.w.p, 4) + ' об/мин') + row('Можно собрать', c.co && c.asm && c.nb ? 'да' : 'нет', c.co && c.asm && c.nb ? 'g' : 'w');
+  loop.redraw();
+}
+
+// ---------- Задача ----------
+const TK = {
+  1: {q: '<b>№ 1.</b> Сколько зубьев должно быть у короны?', lab: 'z<sub>к</sub> =', ans: 48,
+      apply: a => setB(12, Math.max(12, Math.min(40, Math.round((a - 12) / 2))), Math.max(36, Math.min(120, a)), 3),
+      hints: ['Корона стоит. Перейдите в систему отсчёта водила: там солнце и корона связаны как колёса с паразитным сателлитом между ними.',
+              'Формула Виллиса при ω<sub>к</sub> = 0: <div class="fb"><span>(ω<sub>с</sub> − ω<sub>в</sub>) / (0 − ω<sub>в</sub>) = − z<sub>к</sub>/z<sub>с</sub></span><span>i = ω<sub>с</sub>/ω<sub>в</sub> = 1 + z<sub>к</sub>/z<sub>с</sub></span></div>',
+              '5 = 1 + z<sub>к</sub>/12.'],
+      svo: '<b>Свойство.</b> При неподвижной короне <span class="f">i = 1 + z<sub>к</sub>/z<sub>с</sub></span> — всегда больше 2. Единица прибавляется потому, что водило само уходит вслед за солнцем.'},
+  2: {q: '<b>№ 2.</b> Корона — 48 зубьев. Сколько зубьев у сателлита?', lab: 'z<sub>сат</sub> =', ans: 18,
+      apply: a => setB(12, Math.max(12, Math.min(40, a)), 48, 3),
+      hints: ['Сателлит зацепляется и с солнцем, и с короной, а центры солнца и короны совпадают.',
+              'Поперёк ряда через центр: диаметр короны = диаметр солнца + 2 диаметра сателлита. Диаметры пропорциональны числам зубьев (модуль один).',
+              '<div class="fb"><span>z<sub>к</sub> = z<sub>с</sub> + 2 z<sub>сат</sub></span><span>48 = 12 + 2 z<sub>сат</sub></span></div>'],
+      svo: '<b>Свойство (соосность).</b> <span class="f">z<sub>к</sub> = z<sub>с</sub> + 2 z<sub>сат</sub></span>: числа зубьев короны и солнца должны быть одной чётности.'},
+  3: {q: '<b>№ 3.</b> Солнце 12, сателлит 18, корона 48. Сколько сателлитов <b>наибольшее</b> можно поставить на равных углах?', lab: 'N =', ans: 4,
+      apply: a => setB(12, 18, 48, Math.max(2, Math.min(6, a))),
+      hints: ['Два ограничения: сателлиты должны входить в корону зуб во впадину (условие сборки) и не задевать друг друга (условие соседства).',
+              '<div class="fb"><span>(z<sub>с</sub> + z<sub>к</sub>) / N — целое</span><span>(z<sub>с</sub> + z<sub>сат</sub>) · sin(180°/N) > z<sub>сат</sub> + 2</span></div>',
+              '60 делится на 2, 3, 4, 5, 6. Проверьте соседство: 30 · sin(180°/N) > 20.'],
+      svo: '<b>Свойство.</b> Больше сателлитов — меньше нагрузка на каждый, но их число ограничено соседством: при большом сателлите и маленьком солнце вокруг помещается немного.'}
+};
+let tk = '1';
+const hints = RC.hints(RC.$('#tkHint'), RC.$('#tkHints'));
+RC.seg(RC.$('#tkSeg'), 'tk', k => { tk = k; tkShow(); });
+function tkShow(){
+  const T = TK[tk]; RC.$('#tkQ').innerHTML = T.q; RC.$('#tkL').innerHTML = T.lab; RC.$('#tkA').value = '';
+  RC.msg(RC.$('#tkMsg'), '', ''); hints.reset(T.hints); RC.$('#tkSvo').hidden = true;
+  V.fx = 'r'; V.inp = 's'; V.frozen = false;
+  V.hide = tk !== '3'; setB(12, 18, 48, 3);
+  loop.redraw();
+}
+function tkCheck(){
+  const T = TK[tk], a = RC.num(RC.$('#tkA').value), el = RC.$('#tkMsg');
+  if (!Number.isInteger(a) || a <= 0) { RC.msg(el, 'bad', 'Введите целое положительное число.'); return; }
+  V.hide = false; T.apply(a); const good = a === T.ans;
+  if (good) { RC.msg(el, 'ok', 'Верно! ' + (tk === '3' ? 'При N = 4 зазор между сателлитами 1,2 модуля, а при N = 5 они уже налезают друг на друга.' : 'Ряд 12 / 18 / 48 собирается с тремя сателлитами, i = 5.'));
+    RC.$('#tkSvo').innerHTML = T.svo; RC.$('#tkSvo').hidden = false; return; }
+  let t = 'Не сходится. ';
+  if (tk === '1') {
+    if (a === 60) t = 'При z<sub>к</sub> = 60 получится i = 1 + 60/12 = 6. Вы взяли i = z<sub>к</sub>/z<sub>с</sub>, но водило само поворачивается вслед за солнцем — добавляется единица.';
+    else t = 'При z<sub>к</sub> = ' + a + ' передаточное число 1 + ' + a + '/12 = ' + RC.sig(1 + a / 12, 4) + ', а нужно 5.' + ((a - 12) % 2 ? ' К тому же z<sub>к</sub> − z<sub>с</sub> нечётно — сателлит целым не выйдет.' : '');
+  } else if (tk === '2') {
+    if (a === 36) t = 'Это z<sub>к</sub> − z<sub>с</sub>. Но между солнцем и короной помещаются <b>два</b> диаметра сателлита — по одному с каждой стороны от центра. Смотрите: при 36 сателлит врезается в корону.';
+    else if (a === 30) t = 'Это (z<sub>с</sub> + z<sub>к</sub>)/2 — так считают радиус водила в модулях, а не сателлит.';
+    else t = 'При z<sub>сат</sub> = ' + a + ': z<sub>с</sub> + 2z<sub>сат</sub> = ' + (12 + 2 * a) + ' ≠ 48 — ' + (12 + 2 * a > 48 ? 'сателлит врезается в корону.' : 'сателлит не достаёт до короны.');
+  } else {
+    if (a > 4) t = 'Условие сборки 60/' + a + (60 % a ? ' не выполнено' : ' выполнено') + ', но соседство нет: 30 · sin(180°/' + a + ') = ' + RC.fmt(30 * Math.sin(Math.PI / a), 1) + ' < 20 — сателлиты налезают (смотрите рисунок).';
+    else t = 'При N = ' + a + ' собрать можно, но поместится и больше.';
+  }
+  RC.msg(el, 'bad', t);
+}
+RC.$('#tkCheck').addEventListener('click', tkCheck);
+RC.$('#tkA').addEventListener('keydown', e => { if (e.key === 'Enter') tkCheck(); });
+
+// ---------- Игра ----------
+function sols(i, N){
+  const out = []; for (let zs = 12; zs <= 40; zs++) for (let zp = 12; zp <= 40; zp++) { const zr = zs + 2 * zp, c = conds({zs, zp, zr, N});
+    if (Math.abs(1 + zr / zs - i) < 1e-9 && c.asm && c.nb) out.push([zs, zp, zr]); } return out;
+}
+function whyNot(i, N){
+  if (i <= 2) return 'При неподвижной короне i = 1 + z<sub>к</sub>/z<sub>с</sub> > 2: корона всегда больше солнца.';
+  let anyZ = false, anyNb = false;
+  for (let zs = 12; zs <= 40; zs++) { const zr = (i - 1) * zs, zp = (zr - zs) / 2; if (!Number.isInteger(zr) || !Number.isInteger(zp) || zp < 12 || zp > 40) continue;
+    anyZ = true; if (conds({zs, zp, zr, N}).nb) anyNb = true; }
+  if (!anyZ) return 'Сателлит выходит меньше 12 или больше 40 зубьев при любом солнце из набора.';
+  if (!anyNb) return 'Сателлиты получаются крупными относительно солнца: ' + N + ' штук не помещаются вокруг, задевают друг друга.';
+  return 'Ни при одном солнце (z<sub>с</sub> + z<sub>к</sub>) не делится на ' + N + '.';
+}
+const TG = [[3,3],[3,4],[3,5],[3.5,3],[3.5,4],[3.5,5],[4,3],[4,4],[4,5],[4.5,3],[4.5,4],[5,3],[5,4],[6,3],[6,4],[7,3],[8,3],[2,3],[2.5,3],[4,6],[4.5,5],[5,5],[6,5],[7,4],[8,4],[9,3]];
+const score = RC.score(RC.$('#gScore')); let G = null;
+function gNew(){
+  let t; do t = RC.pick(TG); while (G && t === G.t);
+  G = {t, s: sols(t[0], t[1]), done: false};
+  RC.$('#gQ').innerHTML = 'Нужно <b>i = ' + RC.fmt(t[0], t[0] % 1 ? 1 : 0) + '</b> с <b>N = ' + t[1] + '</b> сателлитами.';
+  RC.msg(RC.$('#gMsg'), '', ''); V.fx = 'r'; V.inp = 's'; V.hide = false; setB(20, 20, 60, t[1]);
+}
+function gAns(no){
+  if (!G || G.done) return;
+  const c = conds(B), i = 1 + B.zr / B.zs, okI = Math.abs(i - G.t[0]) < 1e-9, all = c.co && c.asm && c.nb && B.N === G.t[1];
+  if (!no && !(all && okI) && G.s.length) {   // неверная сборка — можно исправить без штрафа
+    const why = !c.co ? 'нет соосности' : B.N !== G.t[1] ? 'нужно N = ' + G.t[1] : !c.nb ? 'сателлиты задевают друг друга' : !c.asm ? 'не выполнено условие сборки' : 'i = ' + RC.sig(i, 4) + ', а нужно ' + G.t[0];
+    RC.msg(RC.$('#gMsg'), 'bad', 'Пока нет: ' + why + '. Исправьте и проверьте ещё раз.'); return; }
+  G.done = true; let good, t;
+  if (no) { good = !G.s.length; t = good ? 'Верно: невозможно. ' + whyNot(G.t[0], G.t[1]) : 'Собрать можно, например: солнце ' + G.s[0][0] + ', сателлит ' + G.s[0][1] + ', корона ' + G.s[0][2] + '.'; if (!good) setB(G.s[0][0], G.s[0][1], G.s[0][2], G.t[1]); }
+  else { good = !!G.s.length; t = good ? 'Верно! ' + B.zs + ' / ' + B.zp + ' / ' + B.zr + ': i = 1 + ' + B.zr + '/' + B.zs + ' = ' + RC.sig(i, 4) + ', все три условия выполнены.' + (G.s.length > 1 ? ' Всего вариантов: ' + G.s.length + '.' : '') : 'Так не бывает: ' + whyNot(G.t[0], G.t[1]); }
+  score.add(good); RC.msg(RC.$('#gMsg'), good ? 'ok' : 'bad', t);
+}
+RC.$('#gCheck').addEventListener('click', () => gAns(false));
+RC.$('#gNo').addEventListener('click', () => gAns(true));
+RC.$('#gNext').addEventListener('click', gNew);
+window.__plan = {sols};
+
+RC.tabs(k => { mode = k; RC.$('#builder').hidden = k === 'task'; V.frozen = false;
+  if (k === 'ex') { V.hide = false; bUpd(); } else if (k === 'task') tkShow(); else gNew(); });
+})();
+</script>
+</body></html>

@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex"><link rel="icon" href="data:,">
+<title>Зачем редуктор: мотор, редуктор, лебёдка</title>
+<style>
+/* Тренажёры «Редукторы» (инженерия, 8–11). Палитра и сетка — как у тренажёров «Движение по окружности». */
+:root{
+  --paper:#F3F7FA; --sheet:#FFFFFF; --ink:#0B3C5D; --ink-2:#5B6B7A; --rule:#BFD7E6;
+  --grid:#E3EDF4; --grid-major:#C3D6E3; --f1:#1F77B4; --f2:#2E9C6B; --f3:#8E5EA2; --res:#E8833A; --res-soft:#FDEBDD;
+  --mark:#2E9C6B; --mark-soft:#E5F4EB; --ok:#1E7A4C; --ok-soft:#E3F2E8; --bad:#B23A2E; --bad-soft:#F9E3E0;
+  --warn:#9A5B00; --warn-soft:#FBEFD9; --steel:#8C98A8; --bronze:#B07A2A;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0F1519; --sheet:#171F26; --ink:#E6EEF4; --ink-2:#9FB0BE; --rule:#2C3A46;
+  --grid:#1E2A33; --grid-major:#2F4150; --f1:#6FB3E6; --f2:#6CCB97; --f3:#C39BD8; --res:#F3A061; --res-soft:#3A2814;
+  --mark:#6CCB97; --mark-soft:#15301F; --ok:#7FD3A0; --ok-soft:#173226; --bad:#FF9C8F; --bad-soft:#3A1D1D;
+  --warn:#F0B867; --warn-soft:#3A2A12; --steel:#9AA6B6; --bronze:#D9A55A; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font:15.5px/1.5 var(--body);
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-block:16px 44px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:14px}
+h1{font:700 clamp(22px,4vw,32px)/1.15 var(--body);margin:0}
+.sub{color:var(--ink-2);margin:4px 0 0;max-width:80ch}
+.eyebrow{font:600 11.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{font:600 14px var(--body);padding:8px 14px;border-radius:999px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--f1);outline-offset:2px}
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:14px;align-items:start}
+@media (max-width:900px){.lab{grid-template-columns:1fr}}
+.stage{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:8px;min-width:0;display:grid;gap:6px}
+canvas{display:block;width:100%;max-width:100%;border-radius:6px;touch-action:manipulation}
+canvas.scene{aspect-ratio:16/10} canvas.chart{aspect-ratio:16/7}
+@media (max-width:600px){canvas.scene{aspect-ratio:4/3} canvas.chart{aspect-ratio:1/1}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink-2);padding:4px 4px 2px}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px;display:grid;gap:12px;min-width:0}
+.panel section{display:grid;gap:11px}
+.panel h2{font:700 16px var(--body);margin:0}
+.panel h3{font:700 13px var(--body);margin:4px 0 0;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em}
+.ctl{display:grid;gap:3px}
+.ctl label{display:flex;justify-content:space-between;font-size:14px;gap:8px}
+.ctl output,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--f1)}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+.seg button{font:600 13px var(--body);padding:6px 10px;border-radius:7px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--f1);color:#fff;border-color:var(--f1)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button.b{font:600 14px var(--body);padding:9px 14px;border-radius:7px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
+button.b.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+button.b.warn{background:transparent;color:var(--bad);border-color:var(--bad)}
+button.b:disabled{opacity:.45;cursor:not-allowed}
+.read{display:grid;grid-template-columns:1fr auto;gap:3px 10px;font-size:14px;border-top:1px solid var(--rule);padding-top:10px;margin:0}
+.read dt{color:var(--ink-2)} .read dd{margin:0;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.read dd.w{color:var(--bad)} .read dd.g{color:var(--ok)}
+.field{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:14px}
+.field input,.field select,select.sel{font:500 15px var(--mono);padding:7px 9px;border:1px solid var(--rule);border-radius:7px;background:var(--paper);color:var(--ink);width:100%;min-width:0}
+.msg{font-size:14px;padding:10px 12px;border-radius:7px}
+.msg.ok{background:var(--ok-soft);color:var(--ok)} .msg.bad{background:var(--bad-soft);color:var(--bad)}
+.hint{font-size:14px;background:var(--mark-soft);border-left:3px solid var(--mark);padding:8px 10px;border-radius:0 7px 7px 0}
+.svo{font-size:14px;border:1px solid var(--res);background:var(--res-soft);padding:10px 12px;border-radius:7px}
+.warnbox{font-size:14px;background:var(--warn-soft);color:var(--warn);padding:8px 10px;border-radius:7px}
+.score{display:flex;gap:14px;font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums}
+.score b{font-size:18px}
+.f{font-family:var(--mono);font-size:.95em;white-space:nowrap}
+.fb{display:grid;gap:2px;font-family:var(--mono);font-size:14px;padding:6px 10px;border-left:3px solid var(--rule);margin:2px 0}
+sub,sup{font-size:.72em}
+.note{font-size:13.5px;color:var(--ink-2);margin:0}
+.task p{margin:0}
+.theory{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 16px;display:grid;gap:10px;font-size:14.5px}
+.theory h2{font:700 18px var(--body);margin:0}
+.theory h3{font:700 15px var(--body);margin:4px 0 0}
+.theory p{margin:0;max-width:92ch}
+.theory ul{margin:0;padding-left:20px;display:grid;gap:4px;max-width:92ch}
+.tblwrap{overflow-x:auto;border:1px solid var(--rule);border-radius:8px}
+table.cmp{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+table.cmp th,table.cmp td{border-bottom:1px solid var(--rule);padding:7px 10px;text-align:left;vertical-align:top}
+table.cmp th{font:600 12px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);background:var(--paper)}
+.ladder{display:flex;flex-wrap:wrap;gap:6px;font-size:13px}
+.ladder a,.ladder span{padding:5px 10px;border-radius:999px;border:1px solid var(--rule);text-decoration:none;color:var(--ink);background:var(--sheet)}
+.ladder span{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.foot{font-size:13px;color:var(--ink-2)}
+.foot a{color:var(--f1)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:600 14px var(--mono);padding:7px 11px;border-radius:7px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer;min-width:52px}
+.chips button[aria-pressed="true"]{background:var(--f1);color:#fff;border-color:var(--f1)}
+.chips button.good{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.chips button.badc{background:var(--bad-soft);color:var(--bad);border-color:var(--bad)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+</style></head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">инженерия · редукторы · ступень 1 из 5</div>
+    <h1>Зачем редуктор: мотор, редуктор, лебёдка</h1>
+    <p class="sub">Моторчик крутится быстро, но слабо. Редуктор меняет обороты на момент. Подберите передаточное число так, чтобы лебёдка подняла груз — и подняла быстрее всего.</p>
+  </header>
+  <nav class="ladder" aria-label="Редукторы: от простого к сложному"><a href="https://metaphys23.github.io/fizika-trenazhery/trenazhery/peredachi.html">Передачи вращения</a><span aria-current="page">1 · Зачем редуктор</span><a href="https://metaphys23.github.io/inzheneriya/reduktory/mnogostupenchatyy.html">2 · Многоступенчатый</a><a href="https://metaphys23.github.io/inzheneriya/reduktory/chervyachnyy.html">3 · Червячный</a><a href="https://metaphys23.github.io/inzheneriya/reduktory/planetarnyy.html">4 · Планетарный</a><a href="https://metaphys23.github.io/inzheneriya/reduktory/vptk.html">5 · ВПТК изнутри</a></nav>
+  <div class="tabs" role="tablist" aria-label="Режим">
+    <button class="tab" role="tab" id="t-ex" data-mode="ex">Исследовать</button>
+    <button class="tab" role="tab" id="t-task" data-mode="task">Задача</button>
+    <button class="tab" role="tab" id="t-game" data-mode="game">Игра «Подбери редуктор»</button>
+  </div>
+
+  <div class="lab">
+    <div class="stage">
+      <div class="btns"><button class="b ghost" id="play">Пуск</button></div>
+      <canvas id="cv" class="scene" aria-label="Мотор, редуктор, барабан лебёдки и груз"></canvas>
+      <canvas id="ch" class="chart" aria-label="Характеристика мотора и скорость подъёма в зависимости от передаточного числа"></canvas>
+      <div class="legend"><span><i style="background:var(--f1)"></i>мотор: момент от частоты</span><span><i style="background:var(--res)"></i>нужен мотору для подъёма</span><span><i style="background:var(--f2)"></i>скорость подъёма</span><span>анимация замедлена в 100 раз</span></div>
+    </div>
+
+    <aside class="panel">
+      <!-- ============ Исследовать ============ -->
+      <section data-pane="ex">
+        <h2>Пульт</h2>
+        <div class="seg" role="group" aria-label="Мотор" id="motSeg">
+          <button data-mot="fa130" aria-pressed="true">FA-130, 3 В</button><button data-mot="rs775" aria-pressed="false">RS-775, 24 В</button><button data-mot="own" aria-pressed="false">свой</button>
+        </div>
+        <div class="ctl"><label for="n0"><span>Холостой ход n<sub>0</sub></span><output id="n0O"></output></label><input id="n0" type="range" min="1000" max="20000" step="100" value="12300"></div>
+        <div class="ctl"><label for="ms"><span>Пусковой момент M<sub>п</sub></span><output id="msO"></output></label><input id="ms" type="range" min="0" max="100" step="1" value="21"></div>
+        <div class="ctl"><label for="gi"><span>Передаточное число i</span><output id="giO"></output></label><input id="gi" type="range" min="0" max="120" step="1" value="64"></div>
+        <div class="ctl"><label for="eta"><span>КПД редуктора η</span><output id="etaO"></output></label><input id="eta" type="range" min="0.5" max="0.98" step="0.01" value="0.7"></div>
+        <div class="ctl"><label for="rr"><span>Радиус барабана r</span><output id="rrO"></output></label><input id="rr" type="range" min="0.5" max="5" step="0.5" value="1"></div>
+        <div class="ctl"><label for="mm"><span>Масса груза m</span><output id="mmO"></output></label><input id="mm" type="range" min="0" max="100" step="1" value="37"></div>
+        <dl class="read" id="rd"></dl>
+        <p class="note"><b>Исследование.</b> Найдите <i>i</i>, при котором груз поднимается быстрее всего. Во сколько раз частота мотора при этом меньше холостого хода? А что будет при <i>i</i> вдвое меньше?</p>
+      </section>
+
+      <!-- ============ Задача ============ -->
+      <section data-pane="task" class="task" hidden>
+        <h2>Задача</h2>
+        <div class="seg" role="group" aria-label="Номер задачи" id="tkSeg"><button data-tk="1" aria-pressed="true">№ 1</button><button data-tk="2" aria-pressed="false">№ 2</button><button data-tk="3" aria-pressed="false">№ 3</button></div>
+        <p>Игрушечная лебёдка: мотор FA-130 при 3 В (холостой ход n<sub>0</sub> = 12 300 об/мин, пусковой момент M<sub>п</sub> = 3,5 мН·м), редуктор с КПД η = 0,7, барабан радиусом r = 1 см, груз m = 0,5 кг, g = 9,8 Н/кг. Момент мотора падает с частотой по прямой.</p>
+        <p id="tkQ"></p>
+        <div class="field"><label for="tkA" id="tkL">Ответ</label><input id="tkA" inputmode="decimal" autocomplete="off"><span id="tkU"></span></div>
+        <div class="btns"><button class="b" id="tkCheck">Проверить</button><button class="b ghost" id="tkHint">Подсказка (0/3)</button></div>
+        <div class="msg" id="tkMsg" role="status" aria-live="polite" hidden></div>
+        <div id="tkHints" style="display:grid;gap:6px"></div>
+        <div class="svo" id="tkSvo" hidden></div>
+      </section>
+
+      <!-- ============ Игра ============ -->
+      <section data-pane="game" hidden>
+        <h2>Подбери редуктор</h2>
+        <div class="score" id="gScore"></div>
+        <p id="gQ"></p>
+        <p class="note">Выберите из каталога редуктор, с которым груз поднимется <b>быстрее всего</b>. Если ни один не поднимет — «Невозможно».</p>
+        <div class="chips" id="gChips" role="group" aria-label="Каталог редукторов"></div>
+        <div class="btns"><button class="b warn" id="gNo">Невозможно</button><button class="b ghost" id="gNext">Следующий заказ</button></div>
+        <div class="msg" id="gMsg" role="status" aria-live="polite" hidden></div>
+      </section>
+    </aside>
+  </div>
+
+  <section class="theory">
+    <h2>Что здесь происходит</h2>
+    <p><b>Редуктор</b> — механизм между мотором и рабочим органом, который уменьшает частоту вращения и во столько же раз (за вычетом потерь) увеличивает момент силы. <b>Передаточное число</b> <span class="f">i = n<sub>вх</sub> / n<sub>вых</sub></span>; момент на выходе <span class="f">M<sub>вых</sub> = M<sub>вх</sub> · i · η</span>, где η — КПД. Это «золотое правило механики» для вращения: выигрываем в силе — проигрываем в скорости.</p>
+    <p><b>Характеристика мотора постоянного тока</b> — почти прямая: без нагрузки он крутится с частотой холостого хода n<sub>0</sub>, а заторможенный развивает наибольший, пусковой момент M<sub>п</sub>. Мощность <span class="f">P = M · ω</span> равна нулю на обоих концах и наибольшая посередине, при n = n<sub>0</sub>/2.</p>
+    <div class="fb"><span>M<sub>б</sub> = m · g · r — момент на барабане</span><span>M<sub>м</sub> = M<sub>б</sub> / (i · η) — нужен мотору</span><span>n<sub>м</sub> = n<sub>0</sub> · (1 − M<sub>м</sub> / M<sub>п</sub>)</span><span>v = 2π · (n<sub>м</sub> / i) · r / 60</span></div>
+    <h3>Где встречается</h3>
+    <div class="tblwrap"><table class="cmp"><thead><tr><th>Устройство</th><th>Мотор</th><th>Редуктор</th><th>Зачем</th></tr></thead><tbody>
+      <tr><td>Жёлтый мотор-редуктор TT из наборов Arduino</td><td>моторчик типа 130</td><td>пластиковые шестерни, 1 : 48</td><td>колёса робота-машинки: мотор слишком быстрый и слабый</td></tr>
+      <tr><td>Шуруповёрт</td><td>коллекторный 550/775</td><td>планетарный, 2–3 ступени</td><td>момент, чтобы закрутить саморез</td></tr>
+      <tr><td>Автоматический шлагбаум, ворота</td><td>коллекторный или асинхронный</td><td>червячный</td><td>момент и самоторможение — ступени 3 и 4</td></tr>
+      <tr><td>Экзоскелет и роботы-манипуляторы</td><td>бесколлекторный «плоский»</td><td>волновой, ВПТК, циклоидальный</td><td>большое i в коротком корпусе — ступень 5</td></tr>
+    </tbody></table></div>
+    <p class="note">Паспортные данные: Mabuchi FA-130RA-18100 при 3 В — 12 300 об/мин без нагрузки, пусковой момент 3,53 мН·м; RS-775 (E-S Motor RS775SM-4445-F) при 24 В — 8 300 об/мин, 0,72 Н·м. Ток мотора и нагрев здесь не учтены; КПД редуктора считаем одинаковым при подъёме и опускании.</p>
+  </section>
+  <p class="foot">Тренажёр открывается без входа и ничего не отправляет · <a href="https://metaphys23.github.io/inzheneriya/">Инженерия на Тезаурусе</a></p>
+</div>
+<script>
+/* Ядро тренажёров «Редукторы»: холст с учётом плотности пикселей, цвета из CSS, числа по-русски,
+   ползунки, вкладки, лесенка подсказок, зубчатые колёса (внешние и с внутренними зубьями). Без зависимостей. */
+(function(){
+  'use strict';
+  const RC = {};
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  RC.css = css;
+  RC.col = () => ({ink: css('--ink'), ink2: css('--ink-2'), rule: css('--rule'), grid: css('--grid'), gridM: css('--grid-major'),
+    paper: css('--paper'), sheet: css('--sheet'), f1: css('--f1'), f2: css('--f2'), f3: css('--f3'), res: css('--res'),
+    ok: css('--ok'), bad: css('--bad'), warn: css('--warn'), steel: css('--steel'), bronze: css('--bronze'), body: css('--body'), mono: css('--mono')});
+  RC.$ = s => document.querySelector(s);
+  RC.prep = function(cv){
+    const W = cv.clientWidth, H = cv.clientHeight, d = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.round(W * d), h = Math.round(H * d);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    const ctx = cv.getContext('2d'); ctx.setTransform(d, 0, 0, d, 0, 0); ctx.fillStyle = css('--sheet'); ctx.fillRect(0, 0, W, H);
+    return {ctx, W, H};
+  };
+  RC.text = function(ctx, s, x, y, o){
+    o = o || {}; ctx.save(); ctx.fillStyle = o.color || css('--ink');
+    ctx.font = (o.italic ? 'italic ' : '') + (o.weight || 500) + ' ' + (o.size || 13) + 'px ' + (o.mono ? css('--mono') : css('--body'));
+    ctx.textAlign = o.align || 'left'; ctx.textBaseline = o.base || 'middle'; ctx.fillText(s, x, y); ctx.restore();
+  };
+  RC.arrow = function(ctx, x1, y1, x2, y2, color, lw){
+    const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy); if (L < 2) return;
+    lw = lw || 2; const h = Math.min(9 + lw, L * 0.45), ux = dx / L, uy = dy / L;
+    ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - ux * h * 0.7, y2 - uy * h * 0.7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - ux * h - uy * h * 0.42, y2 - uy * h + ux * h * 0.42);
+    ctx.lineTo(x2 - ux * h + uy * h * 0.42, y2 - uy * h - ux * h * 0.42); ctx.closePath(); ctx.fill(); ctx.restore();
+  };
+  // число по-русски: десятичная запятая, неразрывный пробел в тысячах, минус «−»
+  RC.fmt = function(x, d){
+    if (x == null || !isFinite(x)) return '—';
+    d = d == null ? 2 : d; let s = x.toFixed(d).replace('.', ',');
+    s = s.replace(/^(-?\d+)/, m => m.replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    return s.replace('-', '−');
+  };
+  RC.sig = function(x, n){             // n значащих цифр, без хвостовых нулей
+    if (!isFinite(x)) return '—'; if (x === 0) return '0';
+    const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x))));
+    let s = RC.fmt(x, Math.min(d, 6)); if (s.includes(',')) s = s.replace(/0+$/, '').replace(/,$/, ''); return s;
+  };
+  RC.num = function(s){                // «0,16», «−2», «4/3», «1 200»
+    s = String(s).trim().replace(/\s| /g, '').replace(/,/g, '.').replace(/[−–]/g, '-');
+    if (!s) return NaN;
+    const m = s.match(/^(-?\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/); if (m) return +m[1] / +m[2];
+    return /^-?\d*\.?\d+(e-?\d+)?$/i.test(s) ? parseFloat(s) : NaN;
+  };
+  RC.near = (a, b, rel, abs) => Math.abs(a - b) <= Math.max((rel || 0) * Math.abs(b), abs || 0);
+  RC.slider = function(id, fmt, on){
+    const el = document.getElementById(id), out = document.getElementById(id + 'O');
+    const upd = () => { if (out) out.textContent = fmt ? fmt(+el.value) : el.value; on && on(); };
+    if (out) out.textContent = fmt ? fmt(+el.value) : el.value;
+    el.addEventListener('input', upd); RC._sl.push(upd); return {el, get: () => +el.value, set: v => { el.value = v; upd(); }, upd};
+  };
+  RC._sl = []; RC.refresh = () => RC._sl.forEach(f => f());
+  RC.seg = function(root, attr, on){   // группа кнопок aria-pressed; возвращает {get,set}
+    const bs = [...root.querySelectorAll('button[data-' + attr + ']')];
+    let cur = (bs.find(b => b.getAttribute('aria-pressed') === 'true') || bs[0]).dataset[attr];
+    const set = k => { cur = k; bs.forEach(b => b.setAttribute('aria-pressed', b.dataset[attr] === k)); on && on(k); };
+    bs.forEach(b => b.addEventListener('click', () => set(b.dataset[attr]))); return {get: () => cur, set};
+  };
+  // вкладки: .tab[data-mode] (id t-ex/t-task/t-game), панели section[data-pane]
+  RC.tabs = function(onShow){
+    const tabs = [...document.querySelectorAll('.tab[data-mode]')], panes = [...document.querySelectorAll('[data-pane]')];
+    let cur = null;
+    const show = k => { cur = k; tabs.forEach(t => t.setAttribute('aria-selected', t.dataset.mode === k));
+      panes.forEach(p => p.hidden = p.dataset.pane !== k); onShow && onShow(k);
+      try { history.replaceState(null, '', '#' + k); } catch (e) {} };
+    tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.mode)));
+    const h = (location.hash || '').slice(1); show(tabs.some(t => t.dataset.mode === h) ? h : tabs[0].dataset.mode);
+    return {get: () => cur, show};
+  };
+  RC.reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // общий цикл анимации: draw(dt); при reduce — один кадр по запросу
+  RC.loop = function(draw){
+    let last = 0, raf = 0, playing = !RC.reduce;
+    const tick = t => { const dt = last ? Math.min((t - last) / 1000, 0.05) : 0; last = t; draw(playing ? dt : 0); raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    window.addEventListener('resize', () => draw(0));
+    return {playing: () => playing, set: p => { playing = p; last = 0; }, redraw: () => draw(0)};
+  };
+  RC.playBtn = function(btn, loop){
+    const lab = () => { btn.textContent = loop.playing() ? '❚❚ Пауза' : '▶ Пуск'; btn.setAttribute('aria-pressed', loop.playing()); };
+    btn.addEventListener('click', () => { loop.set(!loop.playing()); lab(); }); lab();
+  };
+  // лесенка подсказок: кнопка «Подсказка (k/n)», блок с выданными подсказками
+  RC.hints = function(btn, box){
+    let list = [], k = 0;
+    const lab = () => { btn.textContent = 'Подсказка (' + k + '/' + list.length + ')'; btn.disabled = k >= list.length; };
+    btn.addEventListener('click', () => { if (k < list.length) { const d = document.createElement('div'); d.className = 'hint'; d.innerHTML = list[k++]; box.appendChild(d); lab(); } });
+    return {reset: l => { list = l; k = 0; box.innerHTML = ''; lab(); }, used: () => k};
+  };
+  RC.msg = function(el, cls, html){ el.className = 'msg ' + cls; el.innerHTML = html; el.hidden = !html; };
+  RC.rnd = (a, b) => a + Math.random() * (b - a);
+  RC.pick = a => a[Math.floor(Math.random() * a.length)];
+  // ---------- зубчатые колёса ----------
+  // внешнее колесо: делительный радиус r (px), z зубьев, th — угол центра зуба № 0
+  RC.gear = function(ctx, cx, cy, z, r, th, fill, stroke, o){
+    o = o || {}; const m = 2 * r / z, ra = r + m, rf = r - 1.25 * m, step = 2 * Math.PI / z;
+    ctx.save(); ctx.globalAlpha = o.alpha == null ? 1 : o.alpha; ctx.beginPath();
+    for (let k = 0; k < z; k++) {
+      const c = th + k * step, a = [c - step * 0.5, c - step * 0.27, c - step * 0.14, c + step * 0.14, c + step * 0.27, c + step * 0.5], R = [rf, rf, ra, ra, rf, rf];
+      for (let j = 0; j < 6; j++) { const x = cx + R[j] * Math.cos(a[j]), y = cy + R[j] * Math.sin(a[j]); (k === 0 && j === 0) ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+    }
+    ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = o.lw || 1.2; ctx.strokeStyle = stroke; ctx.stroke();
+    if (o.pitch) { ctx.setLineDash([3, 4]); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]); }
+    if (!o.noHub) {
+      ctx.beginPath(); ctx.arc(cx, cy, Math.max(3.5, Math.min(8, rf * 0.18)), 0, 2 * Math.PI); ctx.fillStyle = stroke; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + rf * 0.82 * Math.cos(th), cy + rf * 0.82 * Math.sin(th)); ctx.lineWidth = 2.5; ctx.stroke();
+    }
+    ctx.restore();
+  };
+  // колесо с внутренними зубьями (корона): зуб № 0 смотрит к центру по углу th; R — наружный радиус обода
+  RC.ring = function(ctx, cx, cy, z, r, th, fill, stroke, R, o){
+    o = o || {}; const m = 2 * r / z, rt = r - m, rr = r + 1.25 * m, step = 2 * Math.PI / z;
+    ctx.save(); ctx.globalAlpha = o.alpha == null ? 1 : o.alpha; ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, 2 * Math.PI, false);
+    for (let k = z - 1; k >= 0; k--) {
+      const c = th + k * step, a = [c + step * 0.5, c + step * 0.27, c + step * 0.14, c - step * 0.14, c - step * 0.27, c - step * 0.5], Rr = [rr, rr, rt, rt, rr, rr];
+      for (let j = 0; j < 6; j++) { const x = cx + Rr[j] * Math.cos(a[j]), y = cy + Rr[j] * Math.sin(a[j]); (k === z - 1 && j === 0) ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+    }
+    ctx.closePath(); ctx.fillStyle = fill; ctx.fill('evenodd'); ctx.lineWidth = 1.2; ctx.strokeStyle = stroke; ctx.stroke();
+    ctx.restore();
+  };
+  // угол второго колеса, чтобы зубья входили во впадины: колесо 2 стоит от колеса 1 по направлению alpha
+  RC.meshExt = (th1, z1, z2, alpha) => alpha + Math.PI - (Math.PI - (alpha - th1) * z1) / z2;
+  // сателлит внутри короны: центр сателлита в направлении beta от центра короны
+  RC.meshInt = (thR, zR, zp, beta) => beta - (2 * Math.PI / zp) * ((beta - thR) * zR / (2 * Math.PI) + 0.5);
+  RC.rotArrow = function(ctx, cx, cy, r, dir, color){   // dir: +1 — по часовой на экране, −1 — против
+    if (!dir) return; ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+    const a0 = -Math.PI * 0.8, a1 = -Math.PI * 0.2; ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1); ctx.stroke();
+    const ae = dir > 0 ? a1 : a0, s = dir > 0 ? 1 : -1, x = cx + r * Math.cos(ae), y = cy + r * Math.sin(ae);
+    const tx = -Math.sin(ae) * s, ty = Math.cos(ae) * s, h = 9;
+    ctx.beginPath(); ctx.moveTo(x + tx * h, y + ty * h); ctx.lineTo(x - ty * h * 0.5, y + tx * h * 0.5); ctx.lineTo(x + ty * h * 0.5, y - tx * h * 0.5); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  };
+  RC.rrect = function(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); };
+  // счёт в игре
+  RC.score = function(el){
+    let ok = 0, all = 0, ser = 0, best = 0;
+    const draw = () => { el.innerHTML = '<span>верно <b>' + ok + '</b> из ' + all + '</span><span>серия <b>' + ser + '</b></span><span>рекорд <b>' + best + '</b></span>'; };
+    draw(); return {add: good => { all++; if (good) { ok++; ser++; best = Math.max(best, ser); } else ser = 0; draw(); }};
+  };
+  window.RC = RC;
+})();
+
+</script>
+<script>
+(function(){
+'use strict';
+const g = 9.8, SLOW = 100, CAT = [5, 10, 20, 50, 100, 200, 500];
+const MOT = {fa130: {n0: 12300, Ms: 0.0035, name: 'FA-130 при 3 В'}, rs775: {n0: 8300, Ms: 0.72, name: 'RS-775 при 24 В'}};
+const msOf = s => +(0.001 * Math.pow(2000, s / 100)).toPrecision(2);          // 0,001…2 Н·м
+const sOfMs = M => Math.round(100 * Math.log(M / 0.001) / Math.log(2000));
+const iOf = s => { const v = Math.pow(10, s / 40); return v < 10 ? Math.round(v * 10) / 10 : Math.round(v); };
+const sOfI = i => Math.round(40 * Math.log10(i));
+const mOf = s => +(0.02 * Math.pow(10000, s / 100)).toPrecision(2);           // 0,02…200 кг
+const sOfM = m => Math.round(100 * Math.log(m / 0.02) / Math.log(10000));
+const row = (a, b, c) => '<dt>' + a + '</dt><dd' + (c ? ' class="' + c + '"' : '') + '>' + b + '</dd>';
+const fM = M => M < 0.1 ? RC.sig(M * 1000, 3) + ' мН·м' : RC.sig(M, 3) + ' Н·м';
+
+// физика: всё в СИ, частоты в об/мин
+function solve(p){
+  const Md = p.m * g * p.r, imin = Md / (p.eta * p.Ms), Mup = Md / (p.i * p.eta), Mdn = Md * p.eta / p.i;
+  let mode, nm, Mm;
+  if (Mup < p.Ms) { mode = 'up'; Mm = Mup; nm = p.n0 * (1 - Mup / p.Ms); }
+  else if (Mdn <= p.Ms) { mode = 'stall'; Mm = p.Ms; nm = 0; }
+  else { mode = 'down'; Mm = Mdn; nm = p.n0 * (1 - Mdn / p.Ms); }
+  const nd = nm / p.i, v = 2 * Math.PI * nd / 60 * p.r;
+  return {Md, imin, iopt: 2 * imin, Mup, mode, nm, nd, v, Mm, Pm: Mm * 2 * Math.PI * nm / 60, Pu: p.m * g * v};
+}
+const vOf = (p, i) => { const s = solve(Object.assign({}, p, {i})); return s.mode === 'up' ? s.v : 0; };
+
+// ---------- состояние вида ----------
+const V = {p: {n0: 12300, Ms: 0.0035, i: 40, eta: 0.7, r: 0.01, m: 0.5}, iKnown: true, nums: true, curve: true, opPoint: true, cat: null, catPick: null};
+let thM = 0, sLoad = 0;
+
+// ---------- сцена ----------
+const cv = RC.$('#cv'), ch = RC.$('#ch');
+function drawScene(dt){
+  const {ctx, W, H} = RC.prep(cv), C = RC.col(), p = V.p, s = solve(p);
+  const run = V.iKnown ? s : {mode: 'idle', nm: 0, nd: 0, v: 0};
+  // визуальная угловая скорость мотора; при опускании модель-прямая неточна — показываем только направление
+  const wm = run.mode === 'down' ? -Math.min(25, 0.8 * p.i) : 2 * Math.PI * run.nm / 60 / SLOW;
+  thM += wm * dt;
+  // геометрия
+  const cy = H * 0.34, mx = W * 0.03, mw = W * 0.17, mh = H * 0.24;
+  const bx = W * 0.28, bw = W * 0.36, bh = H * 0.42, by = cy - bh / 2;
+  const dx = W * 0.79, R = Math.min(H * 0.11, W * 0.07);
+  // пол и стойка
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, H - 14); ctx.lineTo(W, H - 14); ctx.stroke();
+  // мотор
+  ctx.fillStyle = C.steel; RC.rrect(ctx, mx, cy - mh / 2, mw, mh, 10); ctx.fill();
+  ctx.strokeStyle = C.ink2; ctx.stroke();
+  RC.text(ctx, 'мотор', mx + mw / 2, cy - mh / 2 - 12, {align: 'center', color: C.ink2, size: 12});
+  // вал мотора и метка вращения
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(mx + mw, cy); ctx.lineTo(bx + 4, cy); ctx.stroke();
+  const fx = mx + mw + (bx - mx - mw) / 2, fr = mh * 0.32;
+  ctx.fillStyle = C.f1; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.ellipse(fx, cy, fr * 0.35, fr, 0, 0, 2 * Math.PI); ctx.fill(); ctx.globalAlpha = 1;
+  const yy = cy + fr * Math.sin(thM); ctx.fillStyle = C.f1; ctx.beginPath(); ctx.arc(fx + fr * 0.3 * Math.cos(thM), yy, 4, 0, 2 * Math.PI); ctx.fill();
+  // редуктор: k ступеней по q = i^(1/k)
+  ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink2; ctx.lineWidth = 1.2; RC.rrect(ctx, bx, by, bw, bh, 8); ctx.fill(); ctx.stroke();
+  const iv = Math.max(1, p.i), k = Math.max(1, Math.ceil(Math.log(iv) / Math.log(5.5) - 1e-9)), q = Math.pow(iv, 1 / k);
+  const zp = 10, zw = Math.max(10, Math.round(zp * q));
+  const rp = Math.min((bw - 24) / (k * (1 + zw / zp) + zw / zp + 1.4), bh * 0.42 / (zw / zp + 0.3)), rw = rp * zw / zp;
+  let x = bx + 12 + rw * 0.0 + rp * 1.2, th = thM, cols = [C.f1, C.f2, C.res, C.f3];
+  const xs = [x]; for (let j = 0; j < k; j++) xs.push(xs[j] + rp + rw);
+  const shift = (bx + bw - 12 - rw) - xs[k]; for (let j = 0; j <= k; j++) xs[j] += Math.min(0, shift) + Math.max(0, shift) / 2;
+  let thIn = thM;
+  for (let j = 0; j < k; j++) {
+    const thW = RC.meshExt(thIn, zp, zw, 0);
+    RC.gear(ctx, xs[j + 1], cy, zw, rw, thW, cols[j % 4] + '33', cols[j % 4], {alpha: 1});
+    RC.gear(ctx, xs[j], cy, zp, rp, thIn, cols[j % 4], C.ink, {});
+    thIn = thW;
+  }
+  RC.text(ctx, V.iKnown ? 'редуктор  i = ' + RC.sig(p.i, 3) + (k > 1 ? '  (' + k + ' ступени)' : '') : 'редуктор  i = ?', bx + bw / 2, by - 12, {align: 'center', weight: 700, size: 13});
+  // выходной вал и барабан
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(bx + bw - 4, cy); ctx.lineTo(dx, cy); ctx.stroke();
+  const thD = thIn;
+  ctx.fillStyle = C.bronze; ctx.beginPath(); ctx.arc(dx, cy, R, 0, 2 * Math.PI); ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = C.paper; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(dx, cy); ctx.lineTo(dx + R * 0.85 * Math.cos(thD), cy + R * 0.85 * Math.sin(thD)); ctx.stroke();
+  RC.text(ctx, 'барабан', dx, cy - R - 12, {align: 'center', color: C.ink2, size: 12});
+  // груз: путь = угол барабана · R
+  const yTop = cy + R + 26, yBot = H - 14 - 46;
+  sLoad += (run.mode === 'idle' ? 0 : wm / p.i) * R * dt;   // px: путь = угол барабана · R
+  const span = Math.max(20, yBot - yTop);
+  if (sLoad > span) sLoad = 0; if (sLoad < 0) sLoad = span;
+  const ly = yBot - sLoad, lw = Math.max(48, Math.min(70, W * 0.1));
+  // вход крутится по часовой; каждая ступень меняет направление. Трос — с той стороны барабана, что идёт вверх
+  const rx = dx + (k % 2 ? R : -R), lft = !(k % 2);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(rx, cy); ctx.lineTo(rx, ly); ctx.stroke();
+  ctx.fillStyle = C.ink2; RC.rrect(ctx, rx - lw / 2, ly, lw, 40, 4); ctx.fill();
+  RC.text(ctx, RC.sig(p.m, 2) + ' кг', rx, ly + 20, {align: 'center', color: C.paper, weight: 700, size: 13});
+  // подписи
+  const st = {up: ['поднимает', C.ok], stall: ['мотор встал: момента не хватает', C.bad], down: ['груз тянет вниз и крутит мотор назад', C.bad], idle: ['', C.ink2]}[run.mode];
+  if (st[0]) RC.text(ctx, st[0], W * 0.03, H - 30, {color: st[1], weight: 700, size: 14});
+  if (V.nums && V.iKnown && s.mode === 'down') RC.text(ctx, 'опускается', rx + (lft ? lw / 2 + 8 : -lw / 2 - 8), ly + 20, {align: lft ? 'left' : 'right', size: 13, weight: 700, color: C.bad});
+  else if (V.nums && V.iKnown) {
+    RC.text(ctx, RC.fmt(s.nm, 0) + ' об/мин', mx + mw / 2, cy + mh / 2 + 14, {align: 'center', mono: true, size: 11});
+    RC.text(ctx, RC.sig(s.nd, 3) + ' об/мин', dx, cy + R + 12, {align: 'center', mono: true, size: 12, color: C.ink2});
+    RC.text(ctx, 'v = ' + RC.sig(s.v, 3) + ' м/с', rx + (lft ? lw / 2 + 8 : -lw / 2 - 8), ly + 20, {align: lft ? 'left' : 'right', mono: true, size: 13, weight: 700, color: s.v > 0 ? C.ok : C.bad});
+  }
+}
+
+// ---------- графики ----------
+function drawChart(){
+  const {ctx, W, H} = RC.prep(ch), C = RC.col(), p = V.p, s = solve(p);
+  const stack = W < 560, two = V.curve;
+  const A = !two ? {x: 0, y: 0, w: W, h: H} : stack ? {x: 0, y: 0, w: W, h: H / 2} : {x: 0, y: 0, w: W / 2, h: H};
+  const B = stack ? {x: 0, y: H / 2, w: W, h: H / 2} : {x: W / 2, y: 0, w: W / 2, h: H};
+  // панель A: мотор M(n)
+  (function(){
+    const x0 = A.x + 46, x1 = A.x + A.w - 16, y0 = A.y + A.h - 30, y1 = A.y + 34;
+    const Mmax = p.Ms * 1.15, X = n => x0 + (x1 - x0) * n / p.n0, Y = M => y0 - (y0 - y1) * M / Mmax;
+    axes(ctx, C, x0, y0, x1, y1, 'n мотора, об/мин', 'M, ' + (p.Ms < 0.1 ? 'мН·м' : 'Н·м'));
+    tick(ctx, C, X(0), y0, '0'); tick(ctx, C, X(p.n0 / 2), y0, RC.fmt(p.n0 / 2, 0)); tick(ctx, C, X(p.n0), y0, RC.fmt(p.n0, 0));
+    const k = p.Ms < 0.1 ? 1000 : 1; RC.text(ctx, RC.sig(p.Ms * k, 3), x0 - 6, Y(p.Ms), {align: 'right', size: 11, mono: true, color: C.ink2});
+    ctx.strokeStyle = C.f3; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5; ctx.beginPath();
+    for (let j = 0; j <= 60; j++) { const u = j / 60, P = 4 * u * (1 - u); j ? ctx.lineTo(X(p.n0 * u), Y(P * p.Ms)) : ctx.moveTo(X(p.n0 * u), Y(P * p.Ms)); }
+    ctx.stroke(); ctx.setLineDash([]);
+    const Pmax = p.Ms * 2 * Math.PI * p.n0 / 60 / 4;
+    RC.text(ctx, 'мощность (пунктир), max ' + RC.sig(Pmax, 3) + ' Вт', x1, A.y + 12, {align: 'right', size: 11, color: C.f3});
+    ctx.strokeStyle = C.f1; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(X(0), Y(p.Ms)); ctx.lineTo(X(p.n0), Y(0)); ctx.stroke();
+    if (V.iKnown && V.opPoint) {
+      const Mr = Math.min(s.Mup, Mmax * 0.995);
+      ctx.strokeStyle = C.res; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(x0, Y(Mr)); ctx.lineTo(x1, Y(Mr)); ctx.stroke(); ctx.setLineDash([]);
+      if (s.mode === 'up') { ctx.fillStyle = C.res; ctx.beginPath(); ctx.arc(X(s.nm), Y(s.Mup), 5.5, 0, 2 * Math.PI); ctx.fill();
+        RC.text(ctx, 'рабочая точка', X(s.nm) + (s.nm > p.n0 * 0.7 ? -8 : 8), Y(s.Mup) - 11, {size: 11, color: C.res, align: s.nm > p.n0 * 0.7 ? 'right' : 'left'}); }
+      else RC.text(ctx, s.Mup > Mmax ? 'нужно ' + fM(s.Mup) + ' — выше графика' : 'нужно больше пускового', x1, Y(Mr) - 9, {align: 'right', size: 11, color: C.bad, weight: 700});
+    }
+  })();
+  if (!two) return;
+  // панель B: v(i), логарифмическая шкала i
+  const x0 = B.x + 50, x1 = B.x + B.w - 16, y0 = B.y + B.h - 30, y1 = B.y + 34;
+  const X = i => x0 + (x1 - x0) * Math.log10(i) / 3;
+  let vmax = 0; for (let j = 0; j <= 240; j++) vmax = Math.max(vmax, vOf(p, Math.pow(10, j / 80)));
+  vmax = vmax > 0 ? vmax * 1.15 : 1;  // 1 — признак «нигде не поднимает»
+  const Y = v => y0 - (y0 - y1) * v / vmax;
+  axes(ctx, C, x0, y0, x1, y1, 'передаточное число i', 'v подъёма, м/с');
+  [1, 10, 100, 1000].forEach(i => tick(ctx, C, X(i), y0, String(i)));
+  if (s.imin > 1) { ctx.fillStyle = C.bad; ctx.globalAlpha = 0.08; ctx.fillRect(x0, y1, Math.min(X(s.imin), x1) - x0, y0 - y1); ctx.globalAlpha = 1;
+    if (X(s.imin) - x0 > 80) RC.text(ctx, 'не поднимает', x0 + 6, y1 + 8, {size: 11, color: C.bad}); }
+  ctx.strokeStyle = C.f2; ctx.lineWidth = 2.5; ctx.beginPath();
+  for (let j = 0; j <= 240; j++) { const i = Math.pow(10, j / 80), v = vOf(p, i); j ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)); }
+  ctx.stroke();
+  if (vmax !== 1) RC.text(ctx, RC.sig(vmax / 1.15, 2), x0 - 6, Y(vmax / 1.15), {align: 'right', size: 11, mono: true, color: C.ink2});
+  if (V.cat) V.cat.forEach(i => { const v = vOf(p, i); ctx.fillStyle = i === V.catPick ? C.res : C.ink2; ctx.beginPath(); ctx.arc(X(i), Y(v), i === V.catPick ? 5.5 : 3.5, 0, 2 * Math.PI); ctx.fill(); });
+  if (V.iKnown && p.i >= 1 && p.i <= 1000) { const v = vOf(p, p.i); ctx.strokeStyle = C.res; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(X(p.i), y0); ctx.lineTo(X(p.i), y1); ctx.stroke();
+    ctx.fillStyle = C.res; ctx.beginPath(); ctx.arc(X(p.i), Y(v), 5.5, 0, 2 * Math.PI); ctx.fill(); }
+}
+function axes(ctx, C, x0, y0, x1, y1, xl, yl){
+  ctx.strokeStyle = C.ink2; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, y1 - 4); ctx.lineTo(x0, y0); ctx.lineTo(x1, y0); ctx.stroke();
+  RC.text(ctx, xl, x1, y0 + 20, {align: 'right', size: 11, color: C.ink2}); RC.text(ctx, yl, x0 + 4, y1 - 10, {size: 11, color: C.ink2});
+}
+function tick(ctx, C, x, y, s){ ctx.strokeStyle = C.ink2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 4); ctx.stroke(); RC.text(ctx, s, x, y + 11, {align: 'center', size: 11, mono: true, color: C.ink2}); }
+
+const loop = RC.loop(dt => { drawScene(dt); drawChart(); });
+RC.playBtn(RC.$('#play'), loop);
+
+// ---------- Исследовать ----------
+let mot = 'fa130';
+const sn0 = RC.slider('n0', v => RC.fmt(v, 0) + ' об/мин', exUpd), sms = RC.slider('ms', s => fM(mot === 'own' ? msOf(s) : MOT[mot].Ms), exUpd);
+const sgi = RC.slider('gi', s => RC.sig(iOf(s), 3), exUpd), seta = RC.slider('eta', v => RC.fmt(v, 2), exUpd);
+const srr = RC.slider('rr', v => RC.fmt(v, 1) + ' см', exUpd), smm = RC.slider('mm', s => RC.sig(mOf(s), 2) + ' кг', exUpd);
+RC.seg(RC.$('#motSeg'), 'mot', k => { mot = k; const own = k === 'own'; sn0.el.disabled = !own; sms.el.disabled = !own;
+  if (!own) { sn0.set(MOT[k].n0); sms.set(sOfMs(MOT[k].Ms)); if (k === 'rs775') { smm.set(sOfM(30)); srr.set(2); sgi.set(sOfI(20)); } else { smm.set(sOfM(0.5)); srr.set(1); sgi.set(sOfI(40)); } } exUpd(); });
+sn0.el.disabled = sms.el.disabled = true; sms.set(sOfMs(0.0035)); smm.set(sOfM(0.5));
+function exUpd(){
+  if (tabs && tabs.get() !== 'ex') return;
+  const Ms = mot === 'own' ? msOf(sms.get()) : MOT[mot].Ms;
+  V.p = {n0: sn0.get(), Ms, i: iOf(sgi.get()), eta: seta.get(), r: srr.get() / 100, m: mOf(smm.get())};
+  V.iKnown = V.nums = V.curve = V.opPoint = true; V.cat = null;
+  const s = solve(V.p), mode = {up: 'поднимает', stall: 'стоит', down: 'опускается'}[s.mode];
+  RC.$('#rd').innerHTML = row('Момент на барабане M<sub>б</sub>', fM(s.Md)) + row('Нужен мотору M<sub>б</sub>/(iη)', fM(s.Mup), s.Mup >= V.p.Ms ? 'w' : '') +
+    (s.mode === 'down' ? row('Частота мотора', 'назад', 'w') + row('Скорость груза v', 'опускается', 'w') :
+    row('Частота мотора', RC.fmt(s.nm, 0) + ' об/мин') + row('Частота барабана', RC.sig(s.nd, 3) + ' об/мин') +
+    row('Скорость груза v', RC.sig(s.v, 3) + ' м/с', s.mode === 'up' ? 'g' : 'w') + row('Мощность мотора', RC.sig(Math.max(s.Pm, 0), 3) + ' Вт') +
+    row('Мощность подъёма mgv', RC.sig(Math.max(s.Pu, 0), 3) + ' Вт')) + row('Режим', mode, s.mode === 'up' ? 'g' : 'w');
+  loop.redraw();
+}
+
+// ---------- Задача ----------
+const TP = {n0: 12300, Ms: 0.0035, eta: 0.7, r: 0.01, m: 0.5};
+const TK = {
+  1: {q: '<b>№ 1.</b> Какое наименьшее передаточное число <i>i</i> нужно, чтобы мотор вообще смог поднять груз?', lab: 'i<sub>мин</sub> =', unit: '', ans: 20, tol: 0.01, iFrom: a => a,
+      hints: ['Мотор тянет, если момент, который ему нужен, меньше пускового M<sub>п</sub>. Редуктор увеличивает момент мотора в <i>i·η</i> раз.',
+              '<div class="fb"><span>M<sub>б</sub> = m·g·r</span><span>M<sub>п</sub>·i·η ≥ M<sub>б</sub></span><span>i ≥ M<sub>б</sub> / (η·M<sub>п</sub>)</span></div>',
+              'M<sub>б</sub> = 0,5 · 9,8 · 0,01 = 0,049 Н·м. Осталось разделить на η·M<sub>п</sub> = 0,7 · 0,0035 Н·м.'],
+      svo: '<b>Свойство.</b> Наименьшее передаточное число — когда мотору нужен ровно пусковой момент: <span class="f">i<sub>мин</sub> = m g r / (η M<sub>п</sub>)</span>. При таком <i>i</i> мотор стоит на месте — поднимать будет бесконечно долго.'},
+  2: {q: '<b>№ 2.</b> Поставили редуктор <i>i</i> = 40. С какой скоростью поднимается груз?', lab: 'v =', unit: 'м/с', ans: 0.16100662, tol: 0.015, iFrom: () => 40,
+      hints: ['Под нагрузкой мотор крутится медленнее холостого хода. Найдите момент на валу мотора, потом по прямой характеристике — его частоту.',
+              '<div class="fb"><span>M<sub>м</sub> = M<sub>б</sub> / (i·η)</span><span>n<sub>м</sub> = n<sub>0</sub>·(1 − M<sub>м</sub>/M<sub>п</sub>)</span><span>v = 2π·(n<sub>м</sub>/i)·r / 60</span></div>',
+              'M<sub>м</sub> = 0,049 / (40·0,7) = 1,75 мН·м — ровно половина пускового, значит n<sub>м</sub> = 6 150 об/мин. Барабан: 6 150 / 40 об/мин.'],
+      svo: '<b>Свойство.</b> Скорость подъёма определяет рабочая точка — пересечение характеристики мотора с моментом, который требует груз. Мощность подъёма <span class="f">mgv</span> = η · (мощность мотора).'},
+  3: {q: '<b>№ 3.</b> При каком передаточном числе груз поднимается <b>быстрее всего</b>? (целое число)', lab: 'i =', unit: '', ans: 40, tol: 0, abs: 1, iFrom: a => a,
+      hints: ['Малое <i>i</i> — мотор не тянет, большое — тянет, но медленно. Где-то между ними максимум. Можно поискать его во вкладке «Исследовать».',
+              'Мощность мотора <span class="f">P = M·ω</span> по прямой характеристике наибольшая посередине: при n = n<sub>0</sub>/2 и M = M<sub>п</sub>/2. Вся она (с КПД) идёт на подъём <span class="f">mgv</span>.',
+              'Нужно, чтобы мотору требовалось M<sub>п</sub>/2: <span class="f">M<sub>б</sub>/(i·η) = M<sub>п</sub>/2</span>. Сравните с ответом задачи № 1.'],
+      svo: '<b>Свойство.</b> Быстрее всего поднимает редуктор, при котором мотор работает на половине холостого хода и отдаёт наибольшую мощность: <span class="f">i<sub>опт</sub> = 2·i<sub>мин</sub></span>. Так подбирают редукторы роботов, лебёдок и подъёмников.'}
+};
+let tk = '1', tkSolved = {};
+const hints = RC.hints(RC.$('#tkHint'), RC.$('#tkHints'));
+RC.seg(RC.$('#tkSeg'), 'tk', k => { tk = k; tkShow(); });
+function tkShow(){
+  const T = TK[tk]; RC.$('#tkQ').innerHTML = T.q; RC.$('#tkL').innerHTML = T.lab; RC.$('#tkU').textContent = T.unit; RC.$('#tkA').value = '';
+  RC.msg(RC.$('#tkMsg'), '', ''); hints.reset(T.hints); RC.$('#tkSvo').hidden = true;
+  V.p = Object.assign({}, TP, {i: tk === '2' ? 40 : 1}); V.iKnown = tk === '2'; V.nums = false; V.curve = false; V.opPoint = false; V.cat = null;
+  loop.redraw();
+}
+function tkCheck(){
+  const T = TK[tk], a = RC.num(RC.$('#tkA').value), el = RC.$('#tkMsg');
+  if (!isFinite(a) || a <= 0) { RC.msg(el, 'bad', 'Введите положительное число (десятичная запятая или дробь вида 81/4).'); return; }
+  const good = T.abs ? Math.abs(a - T.ans) <= T.abs : RC.near(a, T.ans, T.tol);
+  // показать, что будет при ответе ученика
+  if (tk !== '2') { V.p = Object.assign({}, TP, {i: a}); V.iKnown = true; }
+  V.opPoint = true; V.nums = good;
+  const s = solve(V.p);
+  if (good) {
+    V.curve = true; V.nums = true;
+    RC.msg(el, 'ok', 'Верно! ' + (tk === '2' ? 'v ≈ 0,161 м/с: мотор крутится на 6 150 об/мин, барабан — на 154 об/мин.' : tk === '1' ? 'i = 20: мотору нужен ровно пусковой момент.' : 'i = 40: мотор на 6 150 об/мин — половина холостого хода.'));
+    RC.$('#tkSvo').innerHTML = T.svo; RC.$('#tkSvo').hidden = false; tkSolved[tk] = 1;
+  } else RC.msg(el, 'bad', why(a, s));
+  loop.redraw();
+}
+function why(a, s){
+  if (tk === '1') {
+    if (RC.near(a, 14, 0.02)) return 'Вы не учли КПД: до барабана доходит только 70 % момента. При i = 14 мотору нужно ' + fM(s.Mup) + ' — больше пускового 3,5 мН·м, он встанет (на графике рабочая линия выше характеристики).';
+    if (a < 20) return 'При i = ' + RC.sig(a, 3) + ' мотору нужно ' + fM(s.Mup) + ' — больше пускового 3,5 мН·м. ' + (s.mode === 'down' ? 'Груз даже раскручивает мотор назад.' : 'Мотор встанет.');
+    return 'При i = ' + RC.sig(a, 3) + ' груз поднимается (смотрите анимацию), но это не наименьшее i. Уменьшайте, пока мотору хватает момента.';
+  }
+  if (tk === '2') {
+    if (RC.near(a, 0.322, 0.02)) return 'Это скорость при холостом ходе мотора, 12 300 об/мин. Под грузом мотор крутится медленнее — найдите рабочую точку на графике.';
+    if (RC.near(a, 16.1, 0.03) || RC.near(a, 0.00161, 0.03)) return 'Похоже на ошибку в единицах: r = 1 см = 0,01 м, а частота в об/мин делится на 60.';
+    if (RC.near(a, 1.01, 0.03) || RC.near(a, 0.0161, 0.03)) return 'Проверьте переход от оборотов к скорости: v = 2π·n·r/60, где n — частота барабана в об/мин.';
+    return 'Не сходится. Мотору нужен момент 1,75 мН·м — найдите по прямой, с какой частотой он при этом крутится.';
+  }
+  if (s.mode !== 'up') return 'При i = ' + RC.sig(a, 3) + ' мотор не поднимает груз вовсе — смотрите сцену.';
+  const v = s.v, vb = vOf(TP, 40);
+  return 'При i = ' + RC.sig(a, 3) + ' груз едет со скоростью ' + RC.sig(v, 3) + ' м/с. Можно быстрее — мотор сейчас крутится на ' + RC.fmt(s.nm, 0) + ' об/мин, ' + (s.nm > 6150 ? 'а момента у него в запасе мало.' : 'почти на упоре, мощность мала.');
+}
+RC.$('#tkCheck').addEventListener('click', tkCheck);
+RC.$('#tkA').addEventListener('keydown', e => { if (e.key === 'Enter') tkCheck(); });
+
+// ---------- Игра ----------
+const score = RC.score(RC.$('#gScore'));
+let G = null;
+function gNew(){
+  const mk = Math.random() < 0.5 ? 'fa130' : 'rs775', M = MOT[mk], eta = RC.pick([0.6, 0.7, 0.8, 0.9]);
+  const r = mk === 'fa130' ? RC.pick([0.005, 0.01, 0.015, 0.02]) : RC.pick([0.02, 0.03, 0.05, 0.08]);
+  const imp = Math.random() < 0.18, imin = imp ? RC.rnd(520, 1500) : Math.pow(10, RC.rnd(Math.log10(1.5), Math.log10(240)));
+  const m = +(imin * eta * M.Ms / (g * r)).toPrecision(2);
+  G = {mk, p: {n0: M.n0, Ms: M.Ms, eta, r, m, i: 1}, done: false};
+  const vs = CAT.map(i => vOf(G.p, i)), vb = Math.max(...vs);
+  G.best = vb > 0 ? CAT[vs.indexOf(vb)] : 0; G.vb = vb; G.vs = vs;
+  RC.$('#gQ').innerHTML = 'Мотор ' + M.name + ' (n<sub>0</sub> = ' + RC.fmt(M.n0, 0) + ' об/мин, M<sub>п</sub> = ' + fM(M.Ms) + '), КПД редуктора ' + RC.fmt(eta, 1) +
+    ', барабан r = ' + RC.sig(r * 100, 2) + ' см, груз <b>' + RC.sig(m, 2) + ' кг</b>.';
+  RC.$('#gChips').innerHTML = CAT.map(i => '<button data-i="' + i + '" aria-pressed="false">1 : ' + i + '</button>').join('');
+  RC.$('#gChips').querySelectorAll('button').forEach(b => b.addEventListener('click', () => gAns(+b.dataset.i)));
+  RC.msg(RC.$('#gMsg'), '', '');
+  V.p = Object.assign({}, G.p); V.iKnown = false; V.nums = false; V.curve = false; V.opPoint = false; V.cat = null; V.catPick = null; loop.redraw();
+}
+function gAns(i){
+  if (!G || G.done) return; G.done = true;
+  const good = i === 0 ? G.best === 0 : (G.best !== 0 && vOf(G.p, i) >= G.vb * 0.98);
+  score.add(good);
+  RC.$('#gChips').querySelectorAll('button').forEach(b => { const ii = +b.dataset.i; if (ii === G.best) b.classList.add('good'); if (ii === i && !good) b.classList.add('badc'); });
+  const s = solve(Object.assign({}, G.p, {i: i || G.best || 500}));
+  let t;
+  if (G.best === 0) t = (good ? 'Верно: невозможно. ' : 'Ни один не поднимет. ') + 'Нужно i ≥ ' + RC.fmt(s.imin, 0) + ', а в каталоге наибольшее 500. Выход — мотор мощнее, барабан тоньше или полиспаст.';
+  else if (i === 0) t = 'Поднять можно: подходит 1 : ' + G.best + ', груз поедет со скоростью ' + RC.sig(G.vb, 3) + ' м/с.';
+  else if (good) t = 'Верно! 1 : ' + i + ' — ' + RC.sig(vOf(G.p, i), 3) + ' м/с. Лучшее i был бы 2·i<sub>мин</sub> ≈ ' + RC.fmt(s.iopt, 0) + ', ближайший в каталоге — ваш.';
+  else { const v = vOf(G.p, i); t = 'С 1 : ' + i + ' ' + (v > 0 ? 'груз едет ' + RC.sig(v, 3) + ' м/с' : 'мотор не поднимет груз') + ', а с 1 : ' + G.best + ' — ' + RC.sig(G.vb, 3) + ' м/с. i<sub>мин</sub> ≈ ' + RC.sig(s.imin, 3) + ', оптимум 2·i<sub>мин</sub> ≈ ' + RC.sig(s.iopt, 3) + '.'; }
+  RC.msg(RC.$('#gMsg'), good ? 'ok' : 'bad', t);
+  V.p = Object.assign({}, G.p, {i: i || G.best || 500}); V.iKnown = true; V.nums = true; V.curve = true; V.opPoint = true; V.cat = CAT; V.catPick = i || null; loop.redraw();
+}
+RC.$('#gNo').addEventListener('click', () => gAns(0));
+RC.$('#gNext').addEventListener('click', gNew);
+
+// ---------- вкладки ----------
+var tabs = null;
+tabs = RC.tabs(k => { if (k === 'ex') exUpd(); else if (k === 'task') tkShow(); else gNew(); });
+})();
+</script>
+</body></html>

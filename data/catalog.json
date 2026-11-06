@@ -431,6 +431,98 @@
     11
    ],
    "url": "/fizika-trenazhery/trenazhery/peredachi.html"
+  },
+  {
+   "id": "i-red-1-zachem",
+   "title": "Редукторы · 1. Зачем редуктор: мотор, редуктор, лебёдка",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "робототехника",
+   "sub": "Редукторы: от простого к сложному",
+   "classes": [
+    8,
+    9,
+    10,
+    11
+   ],
+   "url": "/inzheneriya/reduktory/zachem-reduktor.html",
+   "desc": "Характеристика мотора, i = n_вх/n_вых, наименьшее и наилучшее передаточное число; игра «Подбери редуктор».",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-06"
+  },
+  {
+   "id": "i-red-2-stupeni",
+   "title": "Редукторы · 2. Многоступенчатый: собери из набора шестерён",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "робототехника",
+   "sub": "Редукторы: от простого к сложному",
+   "classes": [
+    8,
+    9,
+    10,
+    11
+   ],
+   "url": "/inzheneriya/reduktory/mnogostupenchatyy.html",
+   "desc": "Ступени перемножаются, КПД копится, модуль; игра «Собери i» из шестерён LEGO Technic.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-06"
+  },
+  {
+   "id": "i-red-3-cherv",
+   "title": "Редукторы · 3. Червячный: держит или поедет?",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "робототехника",
+   "sub": "Редукторы: от простого к сложному",
+   "classes": [
+    9,
+    10,
+    11
+   ],
+   "url": "/inzheneriya/reduktory/chervyachnyy.html",
+   "desc": "Угол подъёма витка и угол трения, самоторможение, КПД меньше 50 %; игра «Выбери червяк».",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-06"
+  },
+  {
+   "id": "i-red-4-planet",
+   "title": "Редукторы · 4. Планетарный: соберётся ли?",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "робототехника",
+   "sub": "Редукторы: от простого к сложному",
+   "classes": [
+    9,
+    10,
+    11
+   ],
+   "url": "/inzheneriya/reduktory/planetarnyy.html",
+   "desc": "Формула Виллиса, три режима, условия соосности, сборки и соседства; игра «Собери планетарку».",
+   "status": "otkryto",
+   "level": "star",
+   "added": "2026-11-06"
+  },
+  {
+   "id": "i-red-5-vptk",
+   "title": "Редукторы · 5. ВПТК изнутри: волновой редуктор экзоскелета",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "робототехника",
+   "sub": "Редукторы: от простого к сложному",
+   "classes": [
+    9,
+    10,
+    11
+   ],
+   "url": "/inzheneriya/reduktory/vptk.html",
+   "desc": "Волновая передача с телами качения 25 : 1: вид сверху, разрез, зазоры и погрешности сборки, калькулятор, диагностика.",
+   "status": "otkryto",
+   "level": "star",
+   "added": "2026-11-06"
   }
  ]
 }

@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ВПТК изнутри — тренажёр редуктора</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: слева «чертёжный лист» с видом на редуктор и полоской зазоров, справа пульт; на телефоне пульт уходит вниз.
+   Цвет закреплён за звеньями: жёлтый — вход (эксцентрик), синий — выход (сепаратор), фиолетовый — неподвижное волновое кольцо. */
+:root{
+  --paper:#F5F6F8; --sheet:#FFFFFF; --ink:#14161A; --ink-2:#555C66; --rule:#DCE0E5;
+  --grid:#EEF1F4; --grid-major:#D5DAE0; --traj:#C89A00; --mark:#FFD400; --mark-soft:#FFF5BF; --vy:#2F6FA8;
+  --ok:#2E7D4F; --ok-soft:#E3F2E8; --bad:#A33A2E; --bad-soft:#F7E4E1;
+  --p-cup:#B9C0C8; --p-motor:#6B7480; --p-ecc:#C89A00; --p-bear:#8C98A8; --p-cam:#D9822B; --p-roll:#2B313A;
+  --p-sep:#2F6FA8; --p-wave:#7A5BB5; --p-cover:#A3ABB5; --p-out:#5E95C8; --p-screw:#3B414A;
+  --tight:#C0392B; --loose:#2F7FD0; --fine:#2E9D5A;
+  --display:"Unbounded","Golos Text",system-ui,sans-serif; --body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#101215; --sheet:#181B20; --ink:#ECEEF1; --ink-2:#A3AAB4; --rule:#2B3037;
+  --grid:#1D2126; --grid-major:#2C3239; --traj:#FFD400; --mark:#FFD400; --mark-soft:#3A3310; --vy:#7FB8EE;
+  --ok:#7FD3A0; --ok-soft:#173226; --bad:#FF9C8F; --bad-soft:#3A1D1D;
+  --p-cup:#4A525C; --p-motor:#7C8693; --p-ecc:#FFD400; --p-bear:#9AA6B6; --p-cam:#FF9F45; --p-roll:#DDE2E8;
+  --p-sep:#6FB0F0; --p-wave:#B9A2EC; --p-cover:#5C6570; --p-out:#8FC2F2; --p-screw:#C5CCD5;
+  --tight:#FF6B5B; --loose:#6FB0F0; --fine:#6FD39A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#101215; --sheet:#181B20; --ink:#ECEEF1; --ink-2:#A3AAB4; --rule:#2B3037;
+  --grid:#1D2126; --grid-major:#2C3239; --traj:#FFD400; --mark:#FFD400; --mark-soft:#3A3310; --vy:#7FB8EE;
+  --ok:#7FD3A0; --ok-soft:#173226; --bad:#FF9C8F; --bad-soft:#3A1D1D;
+  --p-cup:#4A525C; --p-motor:#7C8693; --p-ecc:#FFD400; --p-bear:#9AA6B6; --p-cam:#FF9F45; --p-roll:#DDE2E8;
+  --p-sep:#6FB0F0; --p-wave:#B9A2EC; --p-cover:#5C6570; --p-out:#8FC2F2; --p-screw:#C5CCD5;
+  --tight:#FF6B5B; --loose:#6FB0F0; --fine:#6FD39A; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font:15.5px/1.55 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1240px;margin:0 auto;display:grid;gap:16px}
+h1{font:700 clamp(24px,4vw,36px)/1.15 var(--display);margin:0;text-wrap:balance}
+.sub{color:var(--ink-2);margin:4px 0 0;max-width:80ch}
+.eyebrow{font:500 11.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.tabs,.seg{display:flex;gap:6px;flex-wrap:wrap}
+.tab,.sg{font:600 14px var(--body);padding:8px 14px;border-radius:999px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);cursor:pointer}
+.sg{font-size:13px;padding:6px 11px}
+.tab[aria-selected="true"],.sg[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--vy);outline-offset:2px}
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:16px;align-items:start}
+@media (max-width:900px){.lab{grid-template-columns:1fr}}
+.stage{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:10px;min-width:0;display:grid;gap:8px}
+canvas{display:block;width:100%;max-width:100%;border-radius:4px;touch-action:manipulation}
+#cv{aspect-ratio:16/11} #bars{aspect-ratio:16/3.4}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink-2);padding:2px 4px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:16px;display:grid;gap:14px;min-width:0}
+.panel h2{font:600 15px var(--display);margin:0}
+.panel h3{font:600 13px var(--body);margin:0;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em}
+.ctl{display:grid;gap:3px}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.ctl output,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--traj)}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:13.5px}
+.checks label{display:flex;gap:7px;align-items:center;cursor:pointer}
+.checks i{display:inline-block;width:10px;height:10px;border-radius:2px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button.b{font:600 14px var(--body);padding:8px 13px;border-radius:6px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
+button.b.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+button.b:disabled{opacity:.45;cursor:not-allowed}
+.read{display:grid;grid-template-columns:1fr auto;gap:3px 10px;font-size:14px;border-top:1px solid var(--rule);padding-top:10px;margin:0}
+.read dt{color:var(--ink-2)} .read dd{margin:0;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.task{display:grid;gap:10px}
+.task p{margin:0}
+.field{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:14px}
+.field input,.field select{font:500 15px var(--mono);padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);width:100%;min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mini{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.mini input{font:500 13.5px var(--mono);padding:5px 6px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);width:100%}
+.mini label{font-size:11.5px;color:var(--ink-2);display:grid;gap:2px}
+.msg{font-size:14px;padding:10px 12px;border-radius:6px;display:none}
+.msg.ok{display:block;background:var(--ok-soft);color:var(--ok)} .msg.bad{display:block;background:var(--bad-soft);color:var(--bad)}
+.hint{font-size:14px;background:var(--mark-soft);border-left:3px solid var(--traj);padding:8px 10px;border-radius:0 6px 6px 0}
+.svo{font-size:14px;border:1px solid var(--traj);background:var(--mark-soft);padding:10px 12px;border-radius:6px}
+.score{display:flex;gap:14px;font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums}
+.score span b{font-size:18px}
+.foot{font-size:13px;color:var(--ink-2);margin:0}
+.parts{display:grid;gap:6px;font-size:13.5px;margin:0;padding:0;list-style:none}
+.parts li{display:grid;grid-template-columns:14px 1fr;gap:8px;align-items:start}
+.parts i{width:12px;height:12px;border-radius:3px;margin-top:4px}
+.parts b{font-weight:600}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.choices button{font:500 13.5px var(--body);text-align:left;padding:8px 10px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer}
+.choices button:hover{border-color:var(--ink-2)}
+table.out{width:100%;border-collapse:collapse;font-size:13.5px}
+table.out td{padding:3px 0;border-bottom:1px solid var(--rule)} table.out td:last-child{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.warn{color:var(--bad)} .good{color:var(--ok)}
+sub,sup{font-size:.72em}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head><body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">редуктор экзоскелета · ВПТК exov9 · 25 : 1</div>
+    <h1>ВПТК изнутри</h1>
+    <p class="sub">Волновая передача с промежуточными телами качения: 26 впадин на неподвижном кольце, 25 роликов Ø4×10 в сепараторе, эксцентриситет 0,8 мм. Посмотрите на редуктор сверху, в разрезе и по слоям, покрутите мотор, внесите погрешности сборки и найдите, где ролики закусывает. Все размеры — в миллиметрах, по исходникам exov8.2/exov9.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Режим">
+    <button class="tab" role="tab" id="t-ex" aria-selected="true" data-mode="explore">Исследовать</button>
+    <button class="tab" role="tab" id="t-calc" aria-selected="false" data-mode="calc">Калькулятор</button>
+    <button class="tab" role="tab" id="t-task" aria-selected="false" data-mode="task">Задача</button>
+    <button class="tab" role="tab" id="t-game" aria-selected="false" data-mode="game">Диагностика</button>
+  </div>
+
+  <div class="lab">
+    <div class="stage">
+      <div class="seg" role="group" aria-label="Вид">
+        <button class="sg" data-view="top" aria-pressed="true">Сверху</button>
+        <button class="sg" data-view="section" aria-pressed="false">Разрез</button>
+        <button class="sg" data-view="iso" aria-pressed="false">Слои</button>
+      </div>
+      <canvas id="cv" width="960" height="660" aria-label="Вид на редуктор"></canvas>
+      <canvas id="bars" width="960" height="204" aria-label="Радиальный зазор каждого ролика, мм"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--tight)"></i>натяг (ролик зажат)</span>
+        <span><i style="background:var(--fine)"></i>зазор 0–0,10</span>
+        <span><i style="background:var(--loose)"></i>люфт &gt; 0,10</span>
+        <span><i style="background:var(--p-ecc)"></i>вход (эксцентрик)</span>
+        <span><i style="background:var(--p-sep)"></i>выход (сепаратор)</span>
+        <span><i style="background:var(--p-wave)"></i>неподвижное кольцо</span>
+      </div>
+    </div>
+
+    <aside class="panel" id="panel">
+      <!-- ============ Исследовать ============ -->
+      <section id="p-explore" class="task">
+        <h2>Пульт</h2>
+        <div class="ctl"><label for="phi"><span>Поворот мотора φ</span> <output id="phiO" class="num"></output></label><input id="phi" type="range" min="0" max="9000" step="1" value="0"></div>
+        <div class="btns"><button class="b" id="play">Пуск</button><button class="b ghost" id="stop">Стоп</button>
+          <label class="foot" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="fast"> быстро</label></div>
+        <dl class="read">
+          <dt>Мотор</dt><dd id="rIn"></dd>
+          <dt>Выход (сепаратор)</dt><dd id="rOut"></dd>
+          <dt>Роликов в работе</dt><dd id="rEng"></dd>
+          <dt>Зазор сейчас min / max</dt><dd id="rPlay"></dd>
+          <dt>Зажатых роликов</dt><dd id="rTight"></dd>
+        </dl>
+        <h3>Слои</h3>
+        <div class="checks" id="layers"></div>
+        <div class="checks">
+          <label><input type="checkbox" id="cForce" checked> силы на роликах</label>
+          <label><input type="checkbox" id="cCol" checked> зазоры цветом</label>
+        </div>
+        <div class="ctl"><label for="expl"><span>Разнести слои</span> <output id="explO" class="num"></output></label><input id="expl" type="range" min="0" max="1" step="0.01" value="0"></div>
+        <div class="ctl"><label for="zoom"><span>Лупа (вид сверху)</span> <output id="zoomO" class="num"></output></label><input id="zoom" type="range" min="1" max="8" step="0.5" value="1"></div>
+        <h3>Погрешности сборки</h3>
+        <div class="ctl"><label for="od"><span>Ø кулачкового кольца</span> <output id="odO" class="num"></output></label><input id="od" type="range" min="79.5" max="80.1" step="0.05" value="79.9"></div>
+        <div class="ctl"><label for="dx"><span>Смещение волнового кольца δ</span> <output id="dxO" class="num"></output></label><input id="dx" type="range" min="0" max="0.3" step="0.01" value="0"></div>
+        <div class="ctl"><label for="de"><span>Люфт эксцентрика на выступе Δe</span> <output id="deO" class="num"></output></label><input id="de" type="range" min="-0.15" max="0.15" step="0.01" value="0"></div>
+        <div class="ctl"><label for="ov"><span>Овальность волнового кольца</span> <output id="ovO" class="num"></output></label><input id="ov" type="range" min="0" max="0.15" step="0.01" value="0"></div>
+        <ul class="parts" id="partsList"></ul>
+        <p class="foot">Попробуйте: поставьте δ = 0,15 и покрутите мотор. Зажатые ролики остаются в одном месте корпуса. Теперь δ = 0 и Δe = 0,1: зона натяга бежит вместе с выступом кулачка. Так на столе отличают смещённое кольцо от люфта эксцентрика.</p>
+      </section>
+
+      <!-- ============ Калькулятор ============ -->
+      <section id="p-calc" class="task" hidden>
+        <h2>Калькулятор профиля и нагрузок</h2>
+        <p class="foot">Модель как в проектных скриптах: wave_ring.py (профиль TrashRobotics/Янгулов) и physics_check.py (статика без трения, контакт по Герцу). Вид слева перестраивается по этим числам.</p>
+        <div class="grid2">
+          <div class="field"><label for="kI">i</label><input id="kI" inputmode="numeric" value="25"><span></span></div>
+          <div class="field"><label for="kD">d</label><select id="kD"></select><span>мм</span></div>
+          <div class="field"><label for="kL">L</label><input id="kL" inputmode="decimal" value="10"><span>мм</span></div>
+          <div class="field"><label for="kEf">e/d</label><input id="kEf" inputmode="decimal" value="0,2"><span></span></div>
+          <div class="field"><label for="kRd">r<sub>d</sub></label><input id="kRd" inputmode="decimal" value="40"><span>мм</span></div>
+          <div class="field"><label for="kC">c</label><input id="kC" inputmode="decimal" value="0,03"><span>мм</span></div>
+        </div>
+        <table class="out" id="kOut"></table>
+        <h3>Нагрузка</h3>
+        <div class="grid2">
+          <div class="field"><label for="kT">T<sub>вых</sub></label><input id="kT" inputmode="decimal" value="10"><span>Н·м</span></div>
+          <div class="field"><label for="kM">пластик</label><select id="kM"><option value="pla">PLA</option><option value="petg">PETG</option></select><span></span></div>
+          <div class="field"><label for="kK">K<sub>нер</sub></label><input id="kK" inputmode="decimal" value="1,5"><span></span></div>
+        </div>
+        <table class="out" id="kLoad"></table>
+        <h3>Подбор кулачкового кольца по замерам</h3>
+        <p class="foot">S — расстояние между внутренними сторонами двух роликов в противоположных впадинах (внутренние губки штангенциркуля). Пустые поля пропускаются.</p>
+        <div class="mini" id="sIn"></div>
+        <div class="mini" id="odIn"></div>
+        <div class="field"><label for="kCt">желаемый зазор</label><input id="kCt" inputmode="decimal" value="0,03"><span>мм</span></div>
+        <div class="msg" id="kPick" role="status" aria-live="polite"></div>
+      </section>
+
+      <!-- ============ Задача ============ -->
+      <section id="p-task" class="task" hidden>
+        <h2>Задача</h2>
+        <p>Волновое кольцо держится только на винтах M3 и сместилось относительно оси мотора на <b>δ = 0,15 мм</b>. Стоит кулачковое кольцо <b>Ø79,90</b> (расчётный зазор c = 0,05 мм на сторону). Ролики Ø4, e = 0,8.</p>
+        <p>1) Каков наибольший <b>натяг</b> ролика за полный оборот (на сколько миллиметров ролику не хватает места)?<br>2) Какой <b>наибольший</b> диаметр кулачкового кольца можно поставить, чтобы при этом смещении натяга не было нигде?</p>
+        <div class="field"><label for="ansA">натяг =</label><input id="ansA" inputmode="decimal" placeholder="например, 0,05" autocomplete="off"><span>мм</span></div>
+        <div class="field"><label for="ansB">Ø<sub>max</sub> =</label><input id="ansB" inputmode="decimal" placeholder="например, 79,80" autocomplete="off"><span>мм</span></div>
+        <div class="btns"><button class="b" id="check">Проверить</button><button class="b ghost" id="hintBtn">Подсказка (0/3)</button></div>
+        <div class="msg" id="msg" role="status" aria-live="polite"></div>
+        <div id="hints" class="task"></div>
+        <div class="svo" id="svo" hidden><b>Свойство.</b> Смещение кольца на δ съедает зазор почти на δ (на склонах волны до ≈ 1,1·δ) с одной стороны и добавляет столько же с другой. Убрать натяг можно только кольцом меньше на ≈ 2,2·δ по диаметру, и тогда с противоположной стороны люфт вырастет до ≈ 2,2·δ (здесь ≈ 0,34 мм). Поэтому сначала центруют (штифты), а потом подбирают кольцо.</div>
+        <p class="foot">Ползунок «Поворот мотора» во вкладке «Исследовать» действует и здесь: красные ролики — натяг.</p>
+      </section>
+
+      <!-- ============ Диагностика ============ -->
+      <section id="p-game" class="task" hidden>
+        <h2>Диагностика</h2>
+        <p>В редукторе одна неисправность (или ни одной). Покрутите мотор и посмотрите, где зажимает и как ведёт себя зона натяга. Что случилось?</p>
+        <div class="ctl"><label for="gPhi"><span>Поворот мотора</span> <output id="gPhiO" class="num"></output></label><input id="gPhi" type="range" min="0" max="720" step="1" value="0"></div>
+        <div class="choices" id="gChoices"></div>
+        <div class="msg" id="gMsg" role="status" aria-live="polite"></div>
+        <div class="btns"><button class="b ghost" id="gNext">Следующий редуктор</button></div>
+        <div class="score"><span>верно <b id="sHit">0</b></span><span>всего <b id="sShot">0</b></span><span>серия <b id="sStreak">0</b></span></div>
+        <p class="foot">Признаки: зона натяга стоит на месте корпуса — смещено кольцо или оно овальное (две зоны напротив). Зона бежит за выступом кулачка — люфт эксцентрика. Тесно или свободно по всему кругу — не тот размер кулачкового кольца.</p>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+// VPTK core math: profile, kinematics, play per roller, statics, Hertz.
+// Same model as vptk_reducer/physics_check.py and wave_ring.py (TrashRobotics calc_vptc),
+// angles in the standard math convention (from +X, CCW).
+const VPTK = (function(){
+  const TAU = 2*Math.PI;
+  function geom(p){
+    // p: {zsh, dsh, e, rd, c}
+    const zsh = p.zsh, zg = zsh + 1, rsh = p.dsh/2, e = p.e, rd = p.rd;
+    const Rsig = rd + rsh, Rout = rd + e + p.dsh, Rin = Rout - 2*e;
+    return {zsh, zg, rsh, e, rd, Rsig, Rout, Rin, c: p.c || 0,
+      camR: rd - (p.c || 0), pitchR: Rsig, ratio: zsh};
+  }
+  // centroid path (roller-centre track) radius at polar angle th
+  function pathR(g, th){ const s = g.e*Math.sin(g.zg*th); return g.e*Math.cos(g.zg*th) + Math.sqrt(g.Rsig*g.Rsig - s*s); }
+  function pathPt(g, th){ const r = pathR(g, th); return [r*Math.cos(th), r*Math.sin(th)]; }
+  // wave-ring working profile = path offset outward by rsh
+  function profile(g, n){
+    const pts = [];
+    for (let i = 0; i < n; i++){
+      const th = TAU*i/n, h = 1e-5;
+      const a = pathPt(g, th - h), b = pathPt(g, th + h), p = pathPt(g, th);
+      let tx = b[0] - a[0], ty = b[1] - a[1]; const L = Math.hypot(tx, ty); tx /= L; ty /= L;
+      let nx = ty, ny = -tx; if (nx*p[0] + ny*p[1] < 0){ nx = -nx; ny = -ny; }
+      pts.push([p[0] + g.rsh*nx, p[1] + g.rsh*ny]);
+    }
+    return pts;
+  }
+  // roller polar angles for input (cam) angle phi: output turns -phi/zsh
+  function rollerAngles(g, phi){ const a = []; for (let k = 0; k < g.zsh; k++) a.push((TAU*k - phi)/g.zsh); return a; }
+  // ---- radial play of every roller with assembly errors ----
+  // err: {dx, dy}  wave-ring offset from motor axis (mm)
+  //      de        eccentricity error (hub float), adds to e along the lobe
+  //      ov, ovAng ovality of the ring: radius + ov*cos(2(th-ovAng))
+  //      camOff    cam ring float on the bearing (mm, toward the lobe = worst)
+  function waveLimit(g, err, psi){
+    // largest roller-centre radius along ray psi allowed by the (shifted, oval) ring
+    const ux = Math.cos(psi), uy = Math.sin(psi);
+    let t = pathR(g, psi);
+    for (let i = 0; i < 6; i++){
+      const qx = t*ux - (err.dx||0), qy = t*uy - (err.dy||0), th = Math.atan2(qy, qx);
+      const want = pathR(g, th) + (err.ov||0)*Math.cos(2*(th - (err.ovAng||0)));
+      t += want - Math.hypot(qx, qy);
+    }
+    return t;
+  }
+  function camLimit(g, err, phi, psi){
+    // smallest roller-centre radius along ray psi allowed by the cam ring
+    const eEff = g.e + (err.de||0) + (err.camOff||0);
+    const cx = eEff*Math.cos(phi), cy = eEff*Math.sin(phi);
+    const ux = Math.cos(psi), uy = Math.sin(psi), R = g.camR + g.rsh;
+    const b = ux*cx + uy*cy, c2 = cx*cx + cy*cy;
+    return b + Math.sqrt(R*R - (c2 - b*b));
+  }
+  function plays(g, err, phi){
+    return rollerAngles(g, phi).map(psi => {
+      const tw = waveLimit(g, err, psi), tc = camLimit(g, err, phi, psi);
+      return {psi, tw, tc, play: tw - tc, r: (tw + tc)/2};
+    });
+  }
+  function playStats(g, err, nPhi){
+    let mn = 1e9, mx = -1e9, at = null;
+    for (let i = 0; i < nPhi; i++){
+      const phi = TAU*i/nPhi;
+      plays(g, err, phi).forEach(q => { if (q.play < mn){ mn = q.play; at = {phi, psi: q.psi}; } if (q.play > mx) mx = q.play; });
+    }
+    return {min: mn, max: mx, at};
+  }
+  // ---- frictionless statics (port of physics_check.solve_mesh) ----
+  function solveMesh(g, phi){
+    const C = [g.e*Math.cos(phi), g.e*Math.sin(phi)], rows = [];
+    for (let k = 0; k < g.zsh; k++){
+      const th = (TAU*k - phi)/g.zsh, P = pathPt(g, th), h = 1e-6;
+      const dx = P[0] - C[0], dy = P[1] - C[1], dl = Math.hypot(dx, dy), uc = [dx/dl, dy/dl];
+      const pm = pathPt(g, th - h), pp = pathPt(g, th + h);
+      const d1 = [(pp[0]-pm[0])/(2*h), (pp[1]-pm[1])/(2*h)], d2 = [(pp[0]-2*P[0]+pm[0])/(h*h), (pp[1]-2*P[1]+pm[1])/(h*h)];
+      const L1 = Math.hypot(d1[0], d1[1]); const tt = [d1[0]/L1, d1[1]/L1];
+      let no = [tt[1], -tt[0]]; if (no[0]*P[0] + no[1]*P[1] < 0) no = [-no[0], -no[1]];
+      const kc = (d1[0]*d2[1] - d1[1]*d2[0])/Math.pow(L1, 3);
+      const uw = [-no[0], -no[1]], t = [-Math.sin(th), Math.cos(th)];
+      // Nc*uc + Nw*uw + Fs*t = 0, Nc = 1  ->  [uw t] [Nw Fs]^T = -uc
+      const det = uw[0]*t[1] - uw[1]*t[0];
+      const Nw = (-uc[0]*t[1] + uc[1]*t[0])/det, Fs = (uw[0]*(-uc[1]) - uw[1]*(-uc[0]))/det;
+      const cross = (a, b) => a[0]*b[1] - a[1]*b[0];
+      const tqIn = cross(C, [-uc[0], -uc[1]]), tqOut = cross(P, [-Fs*t[0], -Fs*t[1]]);
+      rows.push({k, th, P, uc, uw, t, Nw, Fs, tqIn, tqOut, kc});
+    }
+    return {C, rows};
+  }
+  function engaged(g, phi){
+    const m = solveMesh(g, phi), eng = m.rows.filter(r => r.Nw > 0 && r.tqIn > 1e-9);
+    const amax = Math.max.apply(null, eng.map(r => r.tqIn));
+    eng.forEach(r => r.w = r.tqIn/amax);
+    const tout = eng.reduce((s, r) => s + r.w*r.tqOut, 0), tin = eng.reduce((s, r) => s + r.tqIn, 0),
+          toutU = eng.reduce((s, r) => s + r.tqOut, 0);
+    return {C: m.C, rows: m.rows, eng, toutW: tout, ratio: Math.abs(toutU/tin)};
+  }
+  function hertzLine(F, L, Rs, Es){ return Math.sqrt(F*Es/(Math.PI*L*Rs)); }
+  function loads(g, T, mat, Ksh, Lcam, Lring){
+    const Es = 1/((1 - mat.nu*mat.nu)/mat.E + (1 - 0.09)/210000);
+    let w = {Nc:0, Nw:0, Fs:0, pRing:0, nEng:[1e9, 0], ratio:[1e9, 0]};
+    for (let i = 0; i < 7; i++){
+      const phi = (TAU/g.zsh)*i/6, m = engaged(g, phi), s = T*1000/Math.abs(m.toutW);
+      w.ratio = [Math.min(w.ratio[0], m.ratio), Math.max(w.ratio[1], m.ratio)];
+      w.nEng = [Math.min(w.nEng[0], m.eng.length), Math.max(w.nEng[1], m.eng.length)];
+      w.Nc = Math.max(w.Nc, s*Ksh);
+      m.eng.forEach(r => {
+        w.Nw = Math.max(w.Nw, r.w*r.Nw*s*Ksh); w.Fs = Math.max(w.Fs, r.w*Math.abs(r.Fs)*s*Ksh);
+        const kp = r.kc/(1 + g.rsh*r.kc), Rs = 1/(1/g.rsh - kp);
+        w.pRing = Math.max(w.pRing, hertzLine(r.w*r.Nw*s*Ksh, Lring, Rs, Es));
+      });
+    }
+    const RsCam = 1/(1/g.rsh + 1/g.camR);
+    w.pCam = hertzLine(w.Nc, Lcam, RsCam, Es);
+    return w;
+  }
+  return {geom, pathR, pathPt, profile, rollerAngles, waveLimit, camLimit, plays, playStats, solveMesh, engaged, loads, hertzLine};
+})();
+
+(function(){
+  const TAU = 2*Math.PI, DEG = 180/Math.PI;
+  const $ = id => document.getElementById(id);
+  const cv = $('cv'), ctx = cv.getContext('2d'), bv = $('bars'), bx = bv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let C = {}, U = 1;
+  function resize(){ const dpr = window.devicePixelRatio || 1, w = Math.max(280, cv.clientWidth || 640);
+    const W = Math.round(w*dpr), H = Math.round(w*11/16*dpr); if (cv.width !== W) cv.width = W; if (cv.height !== H) cv.height = H;
+    const bw = Math.round(w*dpr), bh = Math.round(w*3.4/16*dpr); if (bv.width !== bw) bv.width = bw; if (bv.height !== bh) bv.height = bh;
+    U = dpr*Math.max(0.8, Math.min(1.15, w/720)); }
+  resize();
+  new ResizeObserver(() => { const o = cv.width; resize(); if (cv.width !== o) draw(); }).observe(cv);
+  const KEYS = ['sheet','ink','ink-2','grid','grid-major','traj','mark','vy','ok','bad','p-cup','p-motor','p-ecc','p-bear','p-cam','p-roll','p-sep','p-wave','p-cover','p-out','p-screw','tight','loose','fine','rule'];
+  function readColors(){ const s = getComputedStyle(document.documentElement); KEYS.forEach(k => C[k] = s.getPropertyValue('--'+k).trim()); }
+  readColors();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); draw(); });
+  new MutationObserver(() => { readColors(); draw(); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+  const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d).replace('.', ',').replace('-', '−');
+  const parse = s => { if (s == null) return NaN; s = String(s).trim().replace(',', '.').replace(/\s+/g,'').replace('−','-');
+    const m = s.match(/^(-?\d*\.?\d+)\/(\d*\.?\d+)$/); if (m) return parseFloat(m[1])/parseFloat(m[2]); return s === '' ? NaN : parseFloat(s); };
+
+  // ---------------- parts (housing z, from exov8.2 sources) ----------------
+  const PARTS = [
+    {id:'cup', name:'Чашка мотора', col:'p-cup', g:0, d:'Печатная. Дно с винтами снизу, внутри мотор. Сверху на ней лежит волновое кольцо: к ней же оно должно быть приштифтовано.'},
+    {id:'motor', name:'Мотор U10 Plus', col:'p-motor', g:1, d:'Статор прикручен к дну чашки, ротор с выступом Ø29 крутится на своих подшипниках. Выступ — единственная база оси мотора: по нему центруются и эксцентрик, и приспособление для волнового кольца.'},
+    {id:'ecc', name:'Эксцентрик', col:'p-ecc', g:2, d:'Вход. 4 винта M4 к ротору, рёбра на выступ Ø29. Цапфа Ø35 смещена на e = 0,8: при обороте мотора она описывает круг Ø1,6.'},
+    {id:'b7', name:'Подшипник 16007', col:'p-bear', g:3, d:'Между цапфой и кулачковым кольцом. Цапфа крутится с мотором, а кольцо почти не вращается: обкатывается по роликам. Скольжение со скоростью мотора заменено качением шариков.'},
+    {id:'cam', name:'Кулачковое кольцо', col:'p-cam', g:4, d:'Его наружная поверхность — «волна» генератора: выпирает на 0,8 в сторону эксцентрика и толкает ролики наружу, во впадины. От его Ø зависит зазор c.'},
+    {id:'roll', name:'Ролики Ø4×10 (25 шт.)', col:'p-roll', g:5, d:'Тела качения. Каждый зажат тремя силами: кулачок толкает наружу, склон впадины давит внутрь и вбок, стенка окна сепаратора держит сбоку. Трение для передачи момента не нужно.'},
+    {id:'sep', name:'Сепаратор (выход)', col:'p-sep', g:6, d:'Клетка с 25 окнами. Стенки окон принимают боковую силу роликов — это и есть момент на выходе. Крутится в 25 раз медленнее мотора и в обратную сторону.'},
+    {id:'wave', name:'Волновое кольцо', col:'p-wave', g:7, d:'Неподвижное звено: 26 впадин. Принимает реакцию роликов и передаёт её через штифты в чашку и статор. Если оно не закреплено, крутится оно, а выход стоит.'},
+    {id:'b10', name:'Подшипник 16010 + крышка', col:'p-cover', g:8, d:'Выходной подшипник в крышке. Несёт сепаратор и нагрузку от рычага ноги (радиальную и опрокидывающую), чтобы она не шла в ролики. Крышка центруется буртиком в волновом кольце.'},
+    {id:'out', name:'Выходной фланец', col:'p-out', g:9, d:'Прижимает внутреннее кольцо 16010 и передаёт момент на рычаг (6 винтов M4).'}
+  ];
+  const vis = {}; PARTS.forEach(p => vis[p.id] = true);
+
+  // ---------------- state ----------------
+  const S = {mode:'explore', view:'top', phi:0, playing:false, anim:null, last:0,
+             force:true, col:true, expl:0, zoom:1,
+             od:79.9, dx:0, de:0, ov:0,
+             calc:{zsh:25, dsh:4, L:10, ef:0.2, rd:40, c:0.03},
+             task:{solved:false, hints:0}, game:null, gphi:0, score:{hit:0, shot:0, streak:0}};
+  // geometry used for drawing (depends on mode)
+  let G = null, PROF = null, PROFKEY = '';
+  function curParams(){
+    if (S.mode === 'calc'){ const k = S.calc; return {zsh:k.zsh, dsh:k.dsh, e:k.ef*k.dsh, rd:k.rd, c:k.c}; }
+    if (S.mode === 'task') return {zsh:25, dsh:4, e:0.8, rd:40, c:(80 - (S.task.solved ? 79.66 : 79.9))/2};
+    if (S.mode === 'game' && S.game) return {zsh:25, dsh:4, e:0.8, rd:40, c:S.game.c};
+    return {zsh:25, dsh:4, e:0.8, rd:40, c:(80 - S.od)/2};
+  }
+  function curErr(){
+    if (S.mode === 'task') return {dx:0.15, dy:0};
+    if (S.mode === 'game' && S.game) return S.game.err;
+    if (S.mode === 'calc') return {};
+    return {dx:S.dx*Math.cos(-Math.PI/4), dy:S.dx*Math.sin(-Math.PI/4), de:S.de, ov:S.ov, ovAng:Math.PI/6};
+  }
+  function curPhi(){ return S.mode === 'game' ? S.gphi*Math.PI/180 : S.phi; }
+  function ensureGeom(){
+    const p = curParams(); G = VPTK.geom(p);
+    const key = [p.zsh, p.dsh, p.e, p.rd].join('|');
+    if (key !== PROFKEY){ PROF = VPTK.profile(G, Math.max(1200, G.zg*100)); PROFKEY = key; }
+  }
+
+  // ---------------- drawing helpers ----------------
+  let V = {sc:1, ox:0, oy:0};
+  const X = x => V.ox + x*V.sc, Y = y => V.oy - y*V.sc;
+  function clear(){ ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, cv.width, cv.height); }
+  function circ(x, y, r){ ctx.beginPath(); ctx.arc(X(x), Y(y), Math.max(0.5, r*V.sc), 0, TAU); }
+  function ring(x, y, r1, r2, fill, stroke){ ctx.beginPath(); ctx.arc(X(x), Y(y), r2*V.sc, 0, TAU); ctx.moveTo(X(x) + Math.max(0, r1*V.sc), Y(y)); ctx.arc(X(x), Y(y), Math.max(0, r1*V.sc), 0, TAU, true);
+    if (fill){ ctx.fillStyle = fill; ctx.fill('evenodd'); }
+    if (stroke){ ctx.strokeStyle = stroke; ctx.lineWidth = 1*U; ctx.beginPath(); ctx.arc(X(x), Y(y), r2*V.sc, 0, TAU); ctx.stroke(); if (r1 > 0){ ctx.beginPath(); ctx.arc(X(x), Y(y), r1*V.sc, 0, TAU); ctx.stroke(); } } }
+  function txt(s, x, y, col, size, align, base){ ctx.fillStyle = col; ctx.font = '600 ' + (size*U) + 'px "Golos Text", system-ui, sans-serif';
+    ctx.textAlign = align || 'left'; ctx.textBaseline = base || 'middle'; ctx.fillText(s, x, y); }
+  function arrowPx(x0, y0, dx, dy, color, w){ const L = Math.hypot(dx, dy); if (L < 3*U) return; const x1 = x0 + dx, y1 = y0 + dy;
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = (w || 2)*U; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    const a = Math.atan2(dy, dx), h = Math.min(8*U, L*0.4); ctx.beginPath(); ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 - h*Math.cos(a - .45), y1 - h*Math.sin(a - .45)); ctx.lineTo(x1 - h*Math.cos(a + .45), y1 - h*Math.sin(a + .45)); ctx.closePath(); ctx.fill(); }
+  function playCol(p){ return p < -0.002 ? C.tight : (p > 0.10 ? C.loose : C.fine); }
+  function alpha(hex, a){ if (!hex || hex[0] !== '#') return hex; const n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
+
+  // ---------------- top view ----------------
+  function drawTop(){
+    clear();
+    const phi = curPhi(), g = G, err = curErr();
+    const pl = VPTK.plays(g, err, phi);
+    const outR = Math.max(50, g.Rout + 5.2);
+    let z = S.mode === 'explore' ? S.zoom : 1;
+    const base = Math.min(cv.width, cv.height)/(2*outR + 8);
+    V.sc = base*z;
+    // zoom centre: the cam lobe on the pitch circle
+    const blend = Math.min(1, z - 1), fx = g.Rsig*Math.cos(phi)*blend, fy = g.Rsig*Math.sin(phi)*blend;
+    V.ox = cv.width/2 - fx*V.sc; V.oy = cv.height/2 + fy*V.sc;
+    const e = g.e + (err.de || 0), cx = e*Math.cos(phi), cy = e*Math.sin(phi);
+    const wx = err.dx || 0, wy = err.dy || 0, ov = err.ov || 0, ova = err.ovAng || 0;
+    // housing / cup rim
+    if (vis.cup){ ring(0, 0, outR - 4.6, outR, alpha(C['p-cup'], .35), C['grid-major']); }
+    // wave ring with wavy bore
+    if (vis.wave){
+      ctx.beginPath(); ctx.arc(X(wx), Y(wy), (outR)*V.sc, 0, TAU);
+      PROF.forEach((p, i) => { const th = Math.atan2(p[1], p[0]), r = Math.hypot(p[0], p[1]) + ov*Math.cos(2*(th - ova));
+        const x = wx + r*Math.cos(th), y = wy + r*Math.sin(th); i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y)); });
+      ctx.closePath(); ctx.fillStyle = alpha(C['p-wave'], .28); ctx.fill('evenodd'); ctx.strokeStyle = C['p-wave']; ctx.lineWidth = 1.4*U; ctx.stroke();
+      // stack screws (0,60..) and dowels (30, 210)
+      for (let k = 0; k < 6; k++){ const a = k*Math.PI/3; circ(wx + 47.5*Math.cos(a), wy + 47.5*Math.sin(a), 1.75); ctx.fillStyle = C.sheet; ctx.fill(); ctx.strokeStyle = C['p-screw']; ctx.lineWidth = 1*U; ctx.stroke(); }
+      [30, 210].forEach(a => { circ(wx + 47.5*Math.cos(a/DEG), wy + 47.5*Math.sin(a/DEG), 1.5); ctx.fillStyle = C['p-screw']; ctx.fill(); });
+    }
+    // eccentric flange (motor axis) + input marker
+    if (vis.ecc){ ring(0, 0, 0, 40.7, alpha(C['p-ecc'], .10), alpha(C['p-ecc'], .6));
+      ctx.strokeStyle = C['p-ecc']; ctx.lineWidth = 3*U; ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(38*Math.cos(phi + Math.PI)), Y(38*Math.sin(phi + Math.PI))); ctx.stroke(); }
+    // separator cage (rotates -phi/zsh)
+    const psi0 = -phi/g.zsh;
+    if (vis.sep){
+      const r1 = g.Rsig - g.e, r2 = r1 + 1.5;   // cage wall R41.2..42.7 for the exo design
+      const half = Math.asin((g.rsh + 0.15)/g.Rsig);
+      ctx.fillStyle = alpha(C['p-sep'], .55);
+      for (let k = 0; k < g.zsh; k++){ const a0 = psi0 + TAU*k/g.zsh + half, a1 = psi0 + TAU*(k + 1)/g.zsh - half;
+        ctx.beginPath(); ctx.arc(X(0), Y(0), r2*V.sc, -a0, -a1, true); ctx.arc(X(0), Y(0), r1*V.sc, -a1, -a0, false); ctx.closePath(); ctx.fill(); }
+      // output marker
+      ctx.strokeStyle = C['p-sep']; ctx.lineWidth = 3*U; ctx.beginPath(); ctx.moveTo(X(r2*Math.cos(psi0 + Math.PI/g.zsh)), Y(r2*Math.sin(psi0 + Math.PI/g.zsh)));
+      ctx.lineTo(X((r2 + 4)*Math.cos(psi0 + Math.PI/g.zsh)), Y((r2 + 4)*Math.sin(psi0 + Math.PI/g.zsh))); ctx.stroke();
+    }
+    // bearing 16007 + journal + cam ring (orbit at the cam centre)
+    const sc = g.rd/40; // scale bearing drawing with the design
+    if (vis.ecc){ circ(cx, cy, 17.5*sc); ctx.fillStyle = alpha(C['p-ecc'], .35); ctx.fill(); ctx.strokeStyle = C['p-ecc']; ctx.lineWidth = 1.5*U; ctx.stroke(); }
+    if (vis.b7){ ring(cx, cy, 17.5*sc, 21.65*sc, alpha(C['p-bear'], .9)); ring(cx, cy, 26.85*sc, 31*sc, alpha(C['p-bear'], .9));
+      for (let k = 0; k < 13; k++){ const a = phi*0.4 + TAU*k/13; circ(cx + 24.25*sc*Math.cos(a), cy + 24.25*sc*Math.sin(a), 2.9*sc); ctx.fillStyle = C['p-bear']; ctx.fill(); } }
+    if (vis.cam){ ring(cx, cy, 31*sc, g.camR, alpha(C['p-cam'], .55), C['p-cam']); }
+    // rollers
+    let tight = 0; const eng = (S.force && vis.roll) ? VPTK.engaged(g, phi) : null;
+    if (vis.roll){
+      pl.forEach((q, k) => { const r = Math.min(q.tw, Math.max(q.tc, q.r)), x = r*Math.cos(q.psi), y = r*Math.sin(q.psi);
+        if (q.play < -0.002) tight++;
+        circ(x, y, g.rsh); ctx.fillStyle = S.col ? playCol(q.play) : C['p-roll']; ctx.fill(); ctx.strokeStyle = C['p-roll']; ctx.lineWidth = 1.2*U; ctx.stroke(); });
+    }
+    if (eng){ const mx = Math.max.apply(null, eng.eng.map(r => r.w));
+      eng.eng.forEach(r => { const L = 20*U*r.w/mx, x0 = X(r.P[0]), y0 = Y(r.P[1]);
+        arrowPx(x0, y0, r.uc[0]*L*1.4, -r.uc[1]*L*1.4, C['p-cam'], 2);
+        arrowPx(x0, y0, r.uw[0]*r.Nw*L*1.4, -r.uw[1]*r.Nw*L*1.4, C['p-wave'], 2);
+        arrowPx(x0, y0, r.t[0]*r.Fs*L*1.4, -r.t[1]*r.Fs*L*1.4, C['p-sep'], 2); }); }
+    // axes, cam centre
+    ctx.strokeStyle = C['ink-2']; ctx.lineWidth = 1*U; ctx.beginPath(); ctx.moveTo(X(-3), Y(0)); ctx.lineTo(X(3), Y(0)); ctx.moveTo(X(0), Y(-3)); ctx.lineTo(X(0), Y(3)); ctx.stroke();
+    circ(cx, cy, 0.6); ctx.fillStyle = C['p-ecc']; ctx.fill();
+    if (z <= 1){ txt('ось мотора', X(1.5), Y(-4), C['ink-2'], 11, 'left'); }
+    if (eng && z <= 1.5){ txt('силы: кулачок ', 12*U, 18*U, C['p-cam'], 12); txt('склон впадины ', 12*U, 34*U, C['p-wave'], 12); txt('стенка окна', 12*U, 50*U, C['p-sep'], 12); }
+    if (z > 1) txt('лупа ×' + fmt(z, 1).replace(',0',''), 12*U, cv.height - 16*U, C['ink-2'], 12);
+    return {pl, tight, eng};
+  }
+
+  // ---------------- section view ----------------
+  function sectionData(){
+    const g = G, phi = curPhi(), err = curErr(), pl = VPTK.plays(g, err, phi);
+    // right half through the roller closest to the lobe, left through the one closest to the back
+    let kR = 0, kL = 0, bR = 9, bL = 9;
+    pl.forEach((q, k) => { const dR = Math.abs(Math.atan2(Math.sin(q.psi - phi), Math.cos(q.psi - phi))), dL = Math.abs(Math.atan2(Math.sin(q.psi - phi - Math.PI), Math.cos(q.psi - phi - Math.PI)));
+      if (dR < bR){ bR = dR; kR = k; } if (dL < bL){ bL = dL; kL = k; } });
+    return {pl, R:pl[kR], L:pl[kL], phi};
+  }
+  function partRects(sd){
+    // returns [{id, rects:[[x0,x1,z0,z1]], circles:[[x,z,r]]}] in housing coords, x across the section
+    const g = G, e = g.e + (curErr().de || 0), R = sd.R, L = sd.L;
+    const cR = e*Math.cos(sd.phi - R.psi), cL = e*Math.cos(sd.phi - L.psi); // cam centre projected on each ray
+    const camR = g.camR;
+    const out = [];
+    const sym = (a, b, z0, z1) => [[a, b, z0, z1], [-b, -a, z0, z1]];
+    out.push({id:'cup', rects:sym(9.5, 50, 0, 5).concat(sym(45.4, 50, 5, 48))});
+    out.push({id:'motor', rects:[[-44.4, 44.4, 5, 45], [-14.5, 14.5, 45, 48]]});
+    out.push({id:'ecc', rects:[[-40.7, -14.95, 46, 48], [14.95, 40.7, 46, 48], [-40.7, 40.7, 48, 49.5], [-(cL + 17.5), cR + 17.5, 49.5, 59.5]]});
+    out.push({id:'b7', rects:[[cR + 17.5, cR + 21.65, 49.8, 58.8], [cR + 26.85, cR + 31, 49.8, 58.8], [-(cL + 21.65), -(cL + 17.5), 49.8, 58.8], [-(cL + 31), -(cL + 26.85), 49.8, 58.8]],
+      circles:[[cR + 24.25, 54.3, 3.0], [-(cL + 24.25), 54.3, 3.0]]});
+    out.push({id:'cam', rects:[[cR + 31, cR + camR, 49.8, 58.8], [cR + 29, cR + camR, 58.8, 59.5], [-(cL + camR), -(cL + 31), 49.8, 58.8], [-(cL + camR), -(cL + 29), 58.8, 59.5]]});
+    const rr = q => Math.min(q.tw, Math.max(q.tc, q.r));
+    out.push({id:'roll', rects:[[rr(R) - g.rsh, rr(R) + g.rsh, 49.5, 59.5], [-(rr(L) + g.rsh), -(rr(L) - g.rsh), 49.5, 59.5]], play:[R.play, L.play]});
+    out.push({id:'sep', rects:[[41.2, 42.7, 47.5, 49.5], [-42.7, -41.2, 47.5, 49.5], [6, 42.7, 59.5, 63.5], [-42.7, -6, 59.5, 63.5], [6, 25, 63.5, 73.5], [-25, -6, 63.5, 73.5]], ghost:[[41.2, 42.7, 49.5, 59.5], [-42.7, -41.2, 49.5, 59.5]]});
+    const wR = R.tw + g.rsh, wL = L.tw + g.rsh;
+    out.push({id:'wave', rects:[[45.1, 50, 48, 49.5], [-50, -45.1, 48, 49.5], [wR, 50, 49.5, 59.5], [-50, -wL, 49.5, 59.5], [45, 50, 59.5, 63.5], [-50, -45, 59.5, 63.5]]});
+    out.push({id:'b10', rects:[[25, 30.5, 63.5, 73.5], [-30.5, -25, 63.5, 73.5], [36.5, 40, 63.5, 73.5], [-40, -36.5, 63.5, 73.5], [40.15, 50, 63.5, 73.5], [-50, -40.15, 63.5, 73.5], [31, 50, 73.5, 76], [-50, -31, 73.5, 76], [43.6, 44.8, 60, 63.5], [-44.8, -43.6, 60, 63.5]],
+      circles:[[33.5, 68.5, 3.6], [-33.5, 68.5, 3.6]]});
+    out.push({id:'out', rects:[[7.75, 30, 73.5, 76.5], [-30, -7.75, 73.5, 76.5]]});
+    out.push({id:'screw', rects:[[45.9, 49.1, 40, 70], [-49.1, -45.9, 40, 70], [44.25, 50.75, 70, 73], [-50.75, -44.25, 70, 73]]});
+    return out;
+  }
+  const GROUP = {cup:0, motor:1, ecc:2, b7:3, cam:4, roll:5, sep:6, wave:7, b10:8, out:9, screw:8};
+  function drawSection(){
+    clear();
+    const sd = sectionData(), parts = partRects(sd), ex = S.mode === 'explore' ? S.expl : 0, gap = 18;
+    const zTop = 77 + ex*gap*9;
+    V.sc = Math.min((cv.width - 200*U)/112, (cv.height - 50*U)/(zTop + 6));
+    V.ox = 56*V.sc + 10*U; V.oy = cv.height - 14*U;
+    // centre line
+    ctx.setLineDash([8*U, 4*U, 2*U, 4*U]); ctx.strokeStyle = C['ink-2']; ctx.lineWidth = 1*U; ctx.beginPath(); ctx.moveTo(X(0), Y(-2)); ctx.lineTo(X(0), Y(zTop + 2)); ctx.stroke(); ctx.setLineDash([]);
+    const colOf = id => id === 'screw' ? C['p-screw'] : C[PARTS.find(p => p.id === id).col];
+    const visOf = id => id === 'screw' ? vis.b10 : vis[id];
+    parts.forEach(p => { if (!visOf(p.id)) return; const dz = ex*gap*GROUP[p.id], col = colOf(p.id);
+      (p.ghost || []).forEach(r => { ctx.setLineDash([3*U, 3*U]); ctx.strokeStyle = alpha(col, .7); ctx.lineWidth = 1*U; ctx.strokeRect(X(r[0]), Y(r[3] + dz), (r[1] - r[0])*V.sc, (r[3] - r[2])*V.sc); ctx.setLineDash([]); });
+      p.rects.forEach((r, i) => { let f = alpha(col, p.id === 'motor' || p.id === 'cup' ? .55 : .8);
+        if (p.id === 'roll' && S.col) f = playCol(p.play[i]);
+        ctx.fillStyle = f; ctx.fillRect(X(r[0]), Y(r[3] + dz), (r[1] - r[0])*V.sc, (r[3] - r[2])*V.sc);
+        ctx.strokeStyle = col; ctx.lineWidth = 1*U; ctx.strokeRect(X(r[0]), Y(r[3] + dz), (r[1] - r[0])*V.sc, (r[3] - r[2])*V.sc); });
+      (p.circles || []).forEach(c => { circ(c[0], c[1] + dz, c[2]); ctx.fillStyle = C.sheet; ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1.2*U; ctx.stroke(); });
+    });
+    // labels on the right
+    const LZ = {cup:2.5, motor:25, ecc:47.7, b7:54.3, cam:56.5, roll:52, sep:66, wave:61.5, b10:70, out:75};
+    let lastY = 1e9;
+    PARTS.slice().sort((a, b) => (LZ[a.id] + ex*gap*a.g) - (LZ[b.id] + ex*gap*b.g)).forEach(p => { if (!vis[p.id]) return;
+      let y = Y(LZ[p.id] + ex*gap*p.g); if (lastY - y < 15*U) y = lastY - 15*U; lastY = y;
+      ctx.strokeStyle = alpha(C[p.col], .8); ctx.lineWidth = 1*U; ctx.beginPath(); ctx.moveTo(X(51), Y(LZ[p.id] + ex*gap*p.g)); ctx.lineTo(X(55), y); ctx.lineTo(X(57), y); ctx.stroke();
+      txt(p.name, X(58), y, C.ink, 12); });
+    txt('слева — ролик у «спины» кулачка, справа — у выступа', 12*U, 16*U, C['ink-2'], 12);
+    txt('зазор справа ' + fmt(sd.R.play, 3) + ' мм, слева ' + fmt(sd.L.play, 3) + ' мм', 12*U, 33*U, C['ink-2'], 12);
+    return {pl: sd.pl};
+  }
+
+  // ---------------- iso (layers) view ----------------
+  function drawIso(){
+    clear();
+    const g = G, phi = curPhi(), err = curErr(), pl = VPTK.plays(g, err, phi), ex = S.mode === 'explore' ? S.expl : 0;
+    const K = 0.34, gap = 26, zMax = 77 + ex*gap*9;
+    V.sc = Math.min((cv.width - 200*U)/104, (cv.height - 40*U)/((104*K) + zMax + 4));
+    V.ox = 52*V.sc + 10*U; V.oy = cv.height - 10*U - 52*K*V.sc;
+    const P = (x, y, z) => [V.ox + x*V.sc, V.oy - (z*V.sc) + y*K*V.sc];
+    function ell(cx, cy, z, r){ const c = P(cx, cy, z); ctx.ellipse(c[0], c[1], r*V.sc, r*K*V.sc, 0, 0, TAU); }
+    function annulus(cx, cy, r1, r2, z0, z1, col, a){
+      const top = P(cx, cy, z1), bot = P(cx, cy, z0);
+      ctx.fillStyle = alpha(col, a*0.75); ctx.beginPath(); ctx.moveTo(bot[0] - r2*V.sc, bot[1]); ctx.ellipse(bot[0], bot[1], r2*V.sc, r2*K*V.sc, 0, Math.PI, 0, true);
+      ctx.lineTo(top[0] + r2*V.sc, top[1]); ctx.ellipse(top[0], top[1], r2*V.sc, r2*K*V.sc, 0, 0, Math.PI, false); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ell(cx, cy, z1, r2); if (r1 > 0){ const c = P(cx, cy, z1); ctx.moveTo(c[0] + r1*V.sc, c[1]); ctx.ellipse(c[0], c[1], r1*V.sc, r1*K*V.sc, 0, 0, TAU, true); }
+      ctx.fillStyle = alpha(col, a); ctx.fill('evenodd'); ctx.strokeStyle = col; ctx.lineWidth = 1*U; ctx.stroke(); }
+    const e = g.e + (err.de || 0), cx = e*Math.cos(phi), cy = e*Math.sin(phi), psi0 = -phi/g.zsh;
+    const dz = i => ex*gap*i;
+    if (vis.cup){ annulus(0, 0, 0, 50, 0 + dz(0), 5 + dz(0), C['p-cup'], .5); annulus(0, 0, 45.4, 50, 5 + dz(0), 48 + dz(0), C['p-cup'], .45); }
+    if (vis.motor){ annulus(0, 0, 0, 44.4, 5 + dz(1), 45 + dz(1), C['p-motor'], .65); annulus(0, 0, 0, 14.5, 45 + dz(1), 48 + dz(1), C['p-motor'], .85); }
+    if (vis.ecc){ annulus(0, 0, 0, 40.7, 46 + dz(2), 49.5 + dz(2), C['p-ecc'], .55); annulus(cx, -cy, 0, 17.5, 49.5 + dz(2), 59.5 + dz(2), C['p-ecc'], .75);
+      const m = P(38*Math.cos(phi + Math.PI), -38*Math.sin(phi + Math.PI), 49.5 + dz(2)), o = P(0, 0, 49.5 + dz(2)); ctx.strokeStyle = C['p-ecc']; ctx.lineWidth = 3*U; ctx.beginPath(); ctx.moveTo(o[0], o[1]); ctx.lineTo(m[0], m[1]); ctx.stroke(); }
+    if (vis.b7){ annulus(cx, -cy, 17.5, 31, 49.8 + dz(3), 58.8 + dz(3), C['p-bear'], .8); }
+    if (vis.cam){ annulus(cx, -cy, 31, g.camR, 49.8 + dz(4), 59.5 + dz(4), C['p-cam'], .7); }
+    // rollers: back half first, then front
+    const drawRollers = front => { if (!vis.roll) return; pl.forEach(q => { const r = Math.min(q.tw, Math.max(q.tc, q.r)), x = r*Math.cos(q.psi), y = -r*Math.sin(q.psi);
+      if ((y > 0) !== front) return; annulus(x, y, 0, g.rsh, 49.5 + dz(5), 59.5 + dz(5), S.col ? playCol(q.play) : C['p-roll'], .95); }); };
+    drawRollers(false);
+    if (vis.sep){ annulus(0, 0, 41.2, 42.7, 47.5 + dz(6), 59.5 + dz(6), C['p-sep'], .35); annulus(0, 0, 6, 42.7, 59.5 + dz(6), 63.5 + dz(6), C['p-sep'], .6); annulus(0, 0, 6, 25, 63.5 + dz(6), 73.5 + dz(6), C['p-sep'], .7);
+      const a = psi0 + Math.PI/g.zsh, m = P(42*Math.cos(a), -42*Math.sin(a), 63.5 + dz(6)), o = P(24*Math.cos(a), -24*Math.sin(a), 63.5 + dz(6)); ctx.strokeStyle = C['p-sep']; ctx.lineWidth = 3*U; ctx.beginPath(); ctx.moveTo(o[0], o[1]); ctx.lineTo(m[0], m[1]); ctx.stroke(); }
+    drawRollers(true);
+    if (vis.wave){ annulus(err.dx || 0, -(err.dy || 0), 44.8, 50, 48 + dz(7), 63.5 + dz(7), C['p-wave'], .35);
+      // wavy bore at the top of the working layer
+      ctx.beginPath(); PROF.forEach((p, i) => { const q = P(p[0] + (err.dx || 0), -p[1] - (err.dy || 0), 59.5 + dz(7)); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.closePath(); ctx.strokeStyle = C['p-wave']; ctx.lineWidth = 1.3*U; ctx.stroke(); }
+    if (vis.b10){ annulus(0, 0, 25, 40, 63.5 + dz(8), 73.5 + dz(8), C['p-bear'], .8); annulus(0, 0, 40.15, 50, 63.5 + dz(8), 73.5 + dz(8), C['p-cover'], .55); annulus(0, 0, 31, 50, 73.5 + dz(8), 76 + dz(8), C['p-cover'], .7); }
+    if (vis.out){ annulus(0, 0, 7.75, 30, 73.5 + dz(9), 76.5 + dz(9), C['p-out'], .8); }
+    // labels
+    const LZ = {cup:3, motor:25, ecc:50, b7:54, cam:57, roll:55, sep:68, wave:62, b10:70, out:75}; let lastY = 1e9;
+    PARTS.slice().sort((a, b) => (LZ[a.id] + dz(a.g)) - (LZ[b.id] + dz(b.g))).forEach(p => { if (!vis[p.id]) return;
+      const a = P(50, 0, LZ[p.id] + dz(p.g)); let y = a[1]; if (lastY - y < 15*U) y = lastY - 15*U; lastY = y;
+      ctx.strokeStyle = alpha(C[p.col], .8); ctx.lineWidth = 1*U; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(a[0] + 12*U, y); ctx.lineTo(a[0] + 16*U, y); ctx.stroke();
+      txt(p.name, a[0] + 18*U, y, C.ink, 12); });
+    if (ex < 0.05) txt('потяните «Разнести слои», чтобы увидеть порядок сборки', 12*U, 16*U, C['ink-2'], 12);
+    return {pl};
+  }
+
+  // ---------------- bars (play per roller) ----------------
+  function drawBars(pl){
+    bx.fillStyle = C.sheet; bx.fillRect(0, 0, bv.width, bv.height);
+    const padL = 46*U, padR = 10*U, padT = 18*U, padB = 18*U, w = bv.width - padL - padR, h = bv.height - padT - padB;
+    const lim = 0.3, y0 = padT + h/2, ys = v => y0 - Math.max(-lim, Math.min(lim, v))/lim*(h/2);
+    bx.strokeStyle = C.grid; bx.lineWidth = 1;
+    [-0.3, -0.2, -0.1, 0.1, 0.2, 0.3].forEach(v => { bx.beginPath(); bx.moveTo(padL, ys(v) + .5); bx.lineTo(padL + w, ys(v) + .5); bx.stroke(); });
+    bx.strokeStyle = C.ink; bx.beginPath(); bx.moveTo(padL, y0 + .5); bx.lineTo(padL + w, y0 + .5); bx.stroke();
+    bx.fillStyle = C['ink-2']; bx.font = (10.5*U) + 'px "JetBrains Mono", monospace'; bx.textAlign = 'right'; bx.textBaseline = 'middle';
+    [-0.2, 0, 0.2].forEach(v => bx.fillText(fmt(v, 1), padL - 5*U, ys(v)));
+    bx.textAlign = 'left'; bx.textBaseline = 'top'; bx.fillText('радиальный зазор ролика, мм (по углу в корпусе, 0…360°)', padL, 2*U);
+    if (!pl) return;
+    const n = pl.length, bw = w/n;
+    pl.map(q => ({a: ((q.psi % TAU) + TAU) % TAU, p: q.play})).sort((a, b) => a.a - b.a).forEach((q, i) => {
+      const x = padL + i*bw + bw*0.15, top = ys(Math.max(0, q.p)), bot = ys(Math.min(0, q.p));
+      bx.fillStyle = playCol(q.p); bx.fillRect(x, top, bw*0.7, Math.max(1, bot - top)); });
+  }
+
+  // ---------------- main draw ----------------
+  let lastInfo = null;
+  function draw(){
+    ensureGeom();
+    let info;
+    const view = S.mode === 'calc' ? 'top' : S.view;
+    if (view === 'top') info = drawTop(); else if (view === 'section') info = drawSection(); else info = drawIso();
+    drawBars(info.pl); lastInfo = info;
+    readouts(info);
+  }
+  function readouts(info){
+    if (S.mode !== 'explore') return;
+    const phi = S.phi, turns = phi/TAU;
+    $('phiO').textContent = fmt(turns, 2) + ' об'; $('rIn').textContent = fmt(phi*DEG % 360, 0) + '° (' + fmt(turns, 2) + ' об)';
+    $('rOut').textContent = '−' + fmt(phi*DEG/25, 1) + '°';
+    const eng = VPTK.engaged(G, phi); $('rEng').textContent = eng.eng.length + ' из 25';
+    const ps = info.pl.map(q => q.play); $('rPlay').textContent = fmt(Math.min.apply(null, ps), 3) + ' / ' + fmt(Math.max.apply(null, ps), 3);
+    const t = ps.filter(p => p < -0.002).length; $('rTight').textContent = t; $('rTight').className = t ? 'warn' : '';
+  }
+
+  // ---------------- explore controls ----------------
+  const layersBox = $('layers');
+  PARTS.forEach(p => { const l = document.createElement('label'); l.innerHTML = '<input type="checkbox" checked> <i style="background:var(--' + p.col + ')"></i>' + p.name.replace(' (25 шт.)', '').replace(' + крышка', ' + кр.');
+    l.querySelector('input').addEventListener('change', ev => { vis[p.id] = ev.target.checked; draw(); }); layersBox.appendChild(l);
+    const li = document.createElement('li'); li.innerHTML = '<i style="background:var(--' + p.col + ')"></i><span><b>' + p.name + '.</b> ' + p.d + '</span>'; $('partsList').appendChild(li); });
+  function syncExplore(){
+    S.phi = +$('phi').value/360*TAU*1; S.force = $('cForce').checked; S.col = $('cCol').checked; S.expl = +$('expl').value; S.zoom = +$('zoom').value;
+    S.od = +$('od').value; S.dx = +$('dx').value; S.de = +$('de').value; S.ov = +$('ov').value;
+    $('explO').textContent = Math.round(S.expl*100) + ' %'; $('zoomO').textContent = '×' + fmt(S.zoom, 1);
+    $('odO').textContent = fmt(S.od, 2) + ' (c = ' + fmt((80 - S.od)/2, 3) + ')'; $('dxO').textContent = fmt(S.dx, 2) + ' мм';
+    $('deO').textContent = (S.de > 0 ? '+' : '') + fmt(S.de, 2) + ' мм'; $('ovO').textContent = '±' + fmt(S.ov, 2) + ' мм';
+    draw();
+  }
+  ['phi','cForce','cCol','expl','zoom','od','dx','de','ov'].forEach(id => $(id).addEventListener('input', syncExplore));
+  $('phi').max = 25*360;
+  function loop(now){ if (!S.playing) return; const dt = Math.min(0.05, (now - S.last)/1000); S.last = now;
+    const rate = $('fast').checked ? 720 : 90; let v = +$('phi').value + rate*dt; if (v > +$('phi').max) v -= +$('phi').max; $('phi').value = v; syncExplore(); S.anim = requestAnimationFrame(loop); }
+  $('play').addEventListener('click', () => { if (reduce){ $('phi').value = (+$('phi').value + 45) % (+$('phi').max); syncExplore(); return; }
+    if (S.playing) return; S.playing = true; S.last = performance.now(); S.anim = requestAnimationFrame(loop); });
+  $('stop').addEventListener('click', () => { S.playing = false; cancelAnimationFrame(S.anim); });
+  document.querySelectorAll('.sg').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('.sg').forEach(x => x.setAttribute('aria-pressed', String(x === b))); S.view = b.dataset.view; draw(); }));
+
+  // ---------------- calculator ----------------
+  const DIN = {2:[0.78,0.3], 3:[1.1,0.45], 4:[1.4,0.6], 5:[1.7,0.75], 6:[2.1,0.9], 8:[2.6,1.2], 10:[3.0,1.5]};
+  Object.keys(DIN).forEach(d => { const o = document.createElement('option'); o.value = d; o.textContent = d; if (d === '4') o.selected = true; $('kD').appendChild(o); });
+  const MATS = {pla:{E:3000, nu:0.36, sy:60, name:'PLA'}, petg:{E:2000, nu:0.38, sy:55, name:'PETG'}};
+  for (let i = 1; i <= 13; i++){ const l = document.createElement('label'); l.innerHTML = 'S' + i + '<input inputmode="decimal" data-s="' + i + '">'; $('sIn').appendChild(l); }
+  ['79,75','79,80','79,85','79,90','79,95','80,00','80,20'].forEach((n, i) => { const l = document.createElement('label'); l.innerHTML = 'Ø ' + n + '<input inputmode="decimal" data-od="' + i + '" placeholder="' + n + '">'; $('odIn').appendChild(l); });
+  function row(t, v, cls){ return '<tr><td>' + t + '</td><td' + (cls ? ' class="' + cls + '"' : '') + '>' + v + '</td></tr>'; }
+  function calc(){
+    const k = S.calc; k.zsh = Math.max(6, Math.min(80, Math.round(parse($('kI').value)) || 25)); k.dsh = +$('kD').value;
+    k.L = parse($('kL').value) || 10; k.ef = parse($('kEf').value) || 0.2; k.rd = parse($('kRd').value) || 40; k.c = isNaN(parse($('kC').value)) ? 0.03 : parse($('kC').value);
+    const p = curParams(), g = VPTK.geom(p), din = DIN[k.dsh], Leff = Math.max(0.5, k.L - din[0] - din[1]);
+    const tr = 1.03*k.dsh/Math.sin(Math.PI/g.zg), back = k.c/(g.e*g.zg)*DEG;
+    let h = '';
+    h += row('впадин на кольце z<sub>g</sub> = i + 1', g.zg);
+    h += row('роликов z<sub>ш</sub> = i', g.zsh);
+    h += row('эксцентриситет e', fmt(g.e, 2) + ' мм');
+    h += row('Ø впадин / Ø вершин', fmt(2*g.Rout, 2) + ' / ' + fmt(2*g.Rin, 2));
+    h += row('Ø делительный сепаратора 2R<sub>Σ</sub>', fmt(2*g.Rsig, 2));
+    h += row('Ø кулачкового кольца при зазоре c', fmt(2*(g.rd - k.c), 2));
+    const wall = (g.Rin - 0.5) - (g.rd + g.e + 0.4);
+    h += row('стенка клетки (зазоры 0,4 к кулачку, 0,5 к вершинам)', fmt(wall, 2) + ' мм', wall >= 1.4 ? 'good' : 'warn');
+    h += row('правило TR: R<sub>вершин</sub> ≥ 1,03·d / sin(π/z<sub>g</sub>)', fmt(g.Rin, 1) + ' ≥ ' + fmt(tr, 1), g.Rin >= tr ? 'good' : 'warn');
+    h += row('люфт на выходе от зазора c', fmt(back, 2) + '°');
+    h += row('цилиндр ролика (без сферы a и фаски z)', fmt(Leff, 2) + ' из ' + fmt(k.L, 1) + ' мм');
+    h += row('S по расчёту (замер между роликами)', fmt(2*(g.Rout - k.dsh), 2) + ' мм');
+    $('kOut').innerHTML = h;
+    // loads
+    const T = parse($('kT').value) || 10, mat = MATS[$('kM').value], Ks = parse($('kK').value) || 1.5;
+    const w = VPTK.loads(g, T, mat, Ks, Math.min(Leff, k.L - 0.3), Leff);
+    const pmax = Math.max(w.pCam, w.pRing);
+    let l = '';
+    l += row('момент на моторе (КПД 1)', fmt(T/g.zsh, 2) + ' Н·м');
+    l += row('ток мотора (K<sub>t</sub> ≈ 0,085 Н·м/А)', fmt(T/g.zsh/0.085, 1) + ' А');
+    l += row('роликов в работе', w.nEng[0] + '–' + w.nEng[1]);
+    l += row('сила кулачок → ролик (пик)', fmt(w.Nc, 0) + ' Н');
+    l += row('сила на стенку окна (пик)', fmt(w.Fs, 0) + ' Н');
+    l += row('давление: кулачок / волна', fmt(w.pCam, 0) + ' / ' + fmt(w.pRing, 0) + ' МПа');
+    l += row('предел ' + mat.name + ': σ<sub>т</sub> / 1,67σ<sub>т</sub> / 2σ<sub>т</sub>', mat.sy + ' / ' + fmt(1.67*mat.sy, 0) + ' / ' + 2*mat.sy, pmax < 1.67*mat.sy ? 'good' : 'warn');
+    l += row('проверка статики: T<sub>вых</sub>/T<sub>вх</sub>', fmt(w.ratio[0], 2));
+    $('kLoad').innerHTML = l;
+    pick();
+    if (S.mode === 'calc') draw();
+  }
+  function pick(){
+    const Ss = [...document.querySelectorAll('[data-s]')].map(x => parse(x.value)).filter(x => !isNaN(x));
+    const ods = [...document.querySelectorAll('[data-od]')].map(x => parse(x.value)).filter(x => !isNaN(x));
+    const ct = parse($('kCt').value), m = $('kPick');
+    if (!Ss.length){ m.className = 'msg'; return; }
+    const smin = Math.min.apply(null, Ss), smax = Math.max.apply(null, Ss), e = S.calc.ef*S.calc.dsh, lim = smin - 2*e - 2*(isNaN(ct) ? 0.03 : ct);
+    let s = 'S<sub>min</sub> = ' + fmt(smin, 2) + ', разброс ' + fmt(smax - smin, 2) + ' мм' + (smax - smin > 0.1 ? ' — кольцо овальное, проверьте ремни и перекос осей принтера' : '') + '. ';
+    s += 'Нужен Ø кулачкового кольца ≤ ' + fmt(lim, 2) + ' мм (с подшипником). ';
+    if (ods.length){ const ok = ods.filter(d => d <= lim + 1e-9); s += ok.length ? 'Берите кольцо, намеренное ' + fmt(Math.max.apply(null, ok), 2) + ' мм.' : 'Ни одно из намеренных колец не подходит: все больше. Шлифуйте заготовку до ' + fmt(lim, 2) + '.'; }
+    m.className = 'msg ok'; m.innerHTML = s;
+  }
+  ['kI','kD','kL','kEf','kRd','kC','kT','kM','kK','kCt'].forEach(id => $(id).addEventListener('input', calc));
+  $('sIn').addEventListener('input', pick); $('odIn').addEventListener('input', pick);
+
+  // ---------------- task ----------------
+  const HINTS = [
+    'Смещение кольца на δ отодвигает профиль от оси с одной стороны и придвигает с другой. Ролик со стороны, куда кольцо «наехало», теряет почти δ места, а зазор у него был только c.',
+    'Если бы профиль был круглым, натяг был бы δ − c = 0,10 мм. Но ролик сидит на склоне волны, а смещение направлено не по его окну: склон добавляет до 10 %. Покрутите мотор и посмотрите на самый короткий красный столбик.',
+    'Модель даёт наибольший натяг ≈ 0,117 мм. Значит, зазор нужен c ≥ 0,167 мм на сторону, и Ø = 80 − 2c.'
+  ];
+  $('hintBtn').addEventListener('click', () => { if (S.task.hints >= 3) return; const d = document.createElement('div'); d.className = 'hint';
+    d.textContent = (S.task.hints + 1) + '. ' + HINTS[S.task.hints]; $('hints').appendChild(d); S.task.hints++;
+    $('hintBtn').textContent = 'Подсказка (' + S.task.hints + '/3)'; if (S.task.hints >= 3) $('hintBtn').disabled = true; });
+  $('check').addEventListener('click', () => {
+    const a = Math.abs(parse($('ansA').value)), b = parse($('ansB').value), m = $('msg');
+    if (isNaN(a) || isNaN(b)){ m.className = 'msg bad'; m.textContent = 'Введите оба числа (можно с запятой).'; return; }
+    const aOk = a >= 0.10 && a <= 0.13, bOk = b >= 79.62 && b <= 79.68;
+    if (aOk && bOk){ S.task.solved = true; m.className = 'msg ok'; m.textContent = 'Верно: натяг ≈ 0,12 мм, Ø ≤ 79,66 мм. Смотрите: красных роликов больше нет, но с противоположной стороны люфт вырос до ≈ 0,34 мм — синие столбики. Покрутите мотор во вкладке «Исследовать» с δ = 0,15, чтобы увидеть это в движении.'; $('svo').hidden = false; draw(); return; }
+    m.className = 'msg bad';
+    if (!aOk && a < 0.10) m.textContent = 'Натяг больше: c = 0,05 не покрывает смещение 0,15. Найдите на полоске зазоров самый низкий красный столбик, покрутив мотор.';
+    else if (!aOk) m.textContent = 'Слишком много: δ действует почти радиально, натяг около δ − c с небольшой добавкой от склона волны.';
+    else if (b >= 79.69 && b <= 79.71) m.textContent = 'Почти. С Ø79,70 (c = 0,15) на склоне волны остаётся натяг ≈ 0,017 мм: смещение работает не только по радиусу. Нужно немного меньше.';
+    else if (b > 79.71) m.textContent = 'С таким кольцом ролики по-прежнему зажаты в секторе, куда сместилось кольцо (зазор должен быть ≥ натяга + c).';
+    else m.textContent = 'Натяга не будет, но это не наибольший диаметр: люфт с другой стороны лишний.';
+  });
+
+  // ---------------- diagnostics game ----------------
+  const CAUSES = [
+    {id:'off', t:'Волновое кольцо смещено', fix:'Центровать приспособлением по выступу мотора и поставить 2 штифта Ø3. Зона натяга стоит на месте корпуса — значит, сдвинута неподвижная деталь.'},
+    {id:'ecc', t:'Люфт эксцентрика на выступе', fix:'Рёбра с натягом (eccentric_v9_crush) или 1–2 слоя скотча на выступ. Зона натяга бежит вместе с выступом кулачка — эксцентриситет больше расчётного.'},
+    {id:'oval', t:'Волновое кольцо овальное', fix:'Две зоны натяга друг напротив друга, неподвижные. Проверить ремни и перекос осей принтера, перепечатать кольцо или выбирать кольцо по S_min.'},
+    {id:'big', t:'Кулачковое кольцо велико', fix:'Тесно по всему кругу одинаково — взять кольцо на шаг (0,05) меньше.'},
+    {id:'small', t:'Кулачковое кольцо мало', fix:'Люфт по всему кругу одинаковый — взять кольцо на шаг больше.'},
+    {id:'ok', t:'Всё в норме', fix:'Зазор везде 0,02–0,08: собирайте.'}
+  ];
+  CAUSES.forEach(c => { const b = document.createElement('button'); b.textContent = c.t; b.addEventListener('click', () => answer(c.id)); $('gChoices').appendChild(b); });
+  const rnd = (a, b) => a + Math.random()*(b - a);
+  function newGame(){
+    const id = CAUSES[Math.floor(Math.random()*CAUSES.length)].id, ang = rnd(0, TAU);
+    let c = rnd(0.03, 0.06), err = {};
+    if (id === 'off'){ const d = rnd(0.12, 0.25); err = {dx:d*Math.cos(ang), dy:d*Math.sin(ang)}; }
+    if (id === 'ecc'){ err = {de:rnd(0.09, 0.14)}; }
+    if (id === 'oval'){ err = {ov:rnd(0.08, 0.14), ovAng:ang}; }
+    if (id === 'big'){ c = -rnd(0.04, 0.08); }
+    if (id === 'small'){ c = rnd(0.16, 0.24); }
+    if (id === 'ok'){ err = {dx:rnd(0, 0.015), dy:rnd(0, 0.015)}; }
+    S.game = {id, c, err, done:false}; S.gphi = Math.round(rnd(0, 360)); $('gPhi').value = S.gphi; $('gMsg').className = 'msg';
+    $('gPhiO').textContent = S.gphi + '°'; draw();
+  }
+  function answer(id){ const g = S.game; if (!g || g.done) return; g.done = true; const hit = id === g.id, c = CAUSES.find(x => x.id === g.id);
+    S.score.shot++; if (hit){ S.score.hit++; S.score.streak++; } else S.score.streak = 0;
+    $('sHit').textContent = S.score.hit; $('sShot').textContent = S.score.shot; $('sStreak').textContent = S.score.streak;
+    const m = $('gMsg'); m.className = hit ? 'msg ok' : 'msg bad';
+    m.textContent = (hit ? 'Верно. ' : 'Нет, здесь: «' + c.t + '». ') + c.fix; }
+  $('gPhi').addEventListener('input', () => { S.gphi = +$('gPhi').value; $('gPhiO').textContent = S.gphi + '°'; draw(); });
+  $('gNext').addEventListener('click', newGame);
+
+  // ---------------- tabs ----------------
+  document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+    S.mode = b.dataset.mode; S.playing = false; cancelAnimationFrame(S.anim);
+    ['explore','calc','task','game'].forEach(m => $('p-' + m).hidden = S.mode !== m);
+    if (S.mode === 'game' && !S.game) newGame(); else if (S.mode === 'calc') calc(); else draw();
+  }));
+
+  calc(); syncExplore();
+})();
+</script>
+
+</body></html>

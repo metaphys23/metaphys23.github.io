@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex"><link rel="icon" href="data:,">
+<title>Червячный редуктор: самоторможение и КПД</title>
+<style>
+/*@CORE_CSS@*/
+</style></head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">инженерия · редукторы · ступень 3 из 5</div>
+    <h1>Червячный редуктор: держит или поедет?</h1>
+    <p class="sub">Червяк — винт, который крутит зубчатое колесо. Одна пара даёт i = 40 и больше, а при малом угле подъёма витка груз не может провернуть червяк обратно — передача сама себя тормозит. Цена — низкий КПД.</p>
+  </header>
+  <!--@LADDER:3@-->
+  <div class="tabs" role="tablist" aria-label="Режим">
+    <button class="tab" role="tab" id="t-ex" data-mode="ex">Исследовать</button>
+    <button class="tab" role="tab" id="t-task" data-mode="task">Задача</button>
+    <button class="tab" role="tab" id="t-game" data-mode="game">Игра «Выбери червяк»</button>
+  </div>
+
+  <div class="lab">
+    <div class="stage">
+      <div class="btns"><button class="b ghost" id="play">Пуск</button><button class="b" id="motor" aria-pressed="true">Мотор: включён</button></div>
+      <canvas id="cv" class="scene" aria-label="Червяк над червячным колесом, барабан и груз"></canvas>
+      <canvas id="ch" class="chart" aria-label="КПД в зависимости от угла подъёма витка"></canvas>
+      <div class="legend"><span><i style="background:var(--steel)"></i>стальной червяк</span><span><i style="background:var(--bronze)"></i>бронзовое колесо</span><span><i style="background:var(--f1)"></i>КПД при подъёме</span><span><i style="background:var(--f3)"></i>КПД «обратного хода»</span><span><i style="background:var(--bad)"></i>зона самоторможения γ ≤ φ</span></div>
+    </div>
+
+    <aside class="panel">
+      <!-- ============ Исследовать ============ -->
+      <section data-pane="ex">
+        <h2>Пульт</h2>
+        <div class="ctl"><span style="font-size:14px">Число заходов червяка z<sub>1</sub></span><div class="seg" role="group" aria-label="Число заходов" id="z1Seg"><button data-z="1" aria-pressed="true">1</button><button data-z="2" aria-pressed="false">2</button><button data-z="4" aria-pressed="false">4</button></div></div>
+        <div class="ctl"><span style="font-size:14px">Коэффициент диаметра q = d<sub>1</sub>/m (ГОСТ 2144)</span><div class="seg" role="group" aria-label="Коэффициент диаметра" id="qSeg"><button data-q="8" aria-pressed="false">8</button><button data-q="10" aria-pressed="false">10</button><button data-q="12.5" aria-pressed="false">12,5</button><button data-q="16" aria-pressed="true">16</button><button data-q="20" aria-pressed="false">20</button></div></div>
+        <div class="ctl"><label for="z2"><span>Зубьев колеса z<sub>2</sub></span><output id="z2O"></output></label><input id="z2" type="range" min="20" max="80" step="1" value="40"></div>
+        <div class="ctl"><label for="ff"><span>Коэффициент трения f</span><output id="ffO"></output></label><input id="ff" type="range" min="0.02" max="0.2" step="0.005" value="0.07"></div>
+        <div class="ctl"><label for="mm"><span>Масса груза</span><output id="mmO"></output></label><input id="mm" type="range" min="5" max="300" step="5" value="100"></div>
+        <dl class="read" id="rd"></dl>
+        <p class="note">Сталь по бронзе со смазкой — f ≈ 0,03–0,08 (чем быстрее скольжение, тем меньше); сталь по стали — 0,1–0,15. Барабан r = 5 см, мотор 1 500 об/мин.</p>
+        <p class="note"><b>Исследование.</b> Выключите мотор при q = 16 и при q = 8. Найдите самый «экономный» червяк, который ещё держит груз. Может ли самотормозящая передача иметь КПД больше 50 %?</p>
+      </section>
+
+      <!-- ============ Задача ============ -->
+      <section data-pane="task" class="task" hidden>
+        <h2>Задача</h2>
+        <div class="seg" role="group" aria-label="Номер задачи" id="tkSeg"><button data-tk="1" aria-pressed="true">№ 1</button><button data-tk="2" aria-pressed="false">№ 2</button><button data-tk="3" aria-pressed="false">№ 3</button></div>
+        <p>Лебёдка с червячным редуктором: однозаходный червяк (z<sub>1</sub> = 1), q = 16, колесо z<sub>2</sub> = 40, сталь по бронзе f = 0,07. Барабан радиусом r = 5 см поднимает груз m = 100 кг, g = 9,8 Н/кг.</p>
+        <p id="tkQ"></p>
+        <div class="field"><label for="tkA" id="tkL">Ответ</label><input id="tkA" inputmode="decimal" autocomplete="off"><span id="tkU"></span></div>
+        <div class="btns"><button class="b" id="tkCheck">Проверить</button><button class="b ghost" id="tkHint">Подсказка (0/3)</button></div>
+        <div class="msg" id="tkMsg" role="status" aria-live="polite" hidden></div>
+        <div id="tkHints" style="display:grid;gap:6px"></div>
+        <div class="svo" id="tkSvo" hidden></div>
+      </section>
+
+      <!-- ============ Игра ============ -->
+      <section data-pane="game" hidden>
+        <h2>Выбери червяк</h2>
+        <div class="score" id="gScore"></div>
+        <p id="gQ"></p>
+        <div class="chips" id="gChips" role="group" aria-label="Каталог червяков: заходы / q"></div>
+        <div class="btns"><button class="b warn" id="gNo">Невозможно</button><button class="b ghost" id="gNext">Следующий заказ</button></div>
+        <div class="msg" id="gMsg" role="status" aria-live="polite" hidden></div>
+      </section>
+    </aside>
+  </div>
+
+  <section class="theory">
+    <h2>Что здесь происходит</h2>
+    <p><b>Червячная передача</b> — червяк (винт с z<sub>1</sub> заходами резьбы) и червячное колесо с z<sub>2</sub> зубьями; оси скрещиваются под прямым углом. За оборот червяка колесо поворачивается на z<sub>1</sub> зубьев, поэтому <span class="f">i = z<sub>2</sub> / z<sub>1</sub></span>: однозаходный червяк и колесо на 40 зубьев дают 40 : 1 в одной компактной паре.</p>
+    <p>Виток червяка — наклонная плоскость, «намотанная» на цилиндр. Её угол — <b>угол подъёма витка</b> <span class="f">tg γ = z<sub>1</sub> / q</span>. Трение задаёт <b>угол трения</b> <span class="f">tg φ = f</span>. Как у бруска на наклонной плоскости: если γ ≤ φ, груз не может сам съехать — колесо не провернёт червяк. Это <b>самоторможение</b>.</p>
+    <div class="fb"><span>η<sub>подъём</sub> = tg γ / tg(γ + φ)</span><span>η<sub>обратный</sub> = tg(γ − φ) / tg γ   (при γ ≤ φ — ноль или меньше: держит)</span></div>
+    <p><b>Теорема о 50 %.</b> На границе самоторможения γ = φ КПД равен <span class="f">tg φ / tg 2φ = (1 − tg² φ) / 2</span> — меньше половины. Поэтому самотормозящий червяк всегда тратит на трение больше, чем передаёт. Это плата за то, что груз держится без тормоза.</p>
+    <h3>Где встречается</h3>
+    <ul>
+      <li><b>Колки гитары, балалайки, контрабаса</b> — маленький червяк держит натяжение струны: самоторможение не даёт строю «уплыть».</li>
+      <li><b>Лебёдки старых лифтов</b>, шлагбаумы, привод ворот, поворотные столы станков, делительные головки.</li>
+      <li><b>Рулевой механизм «классики» ВАЗ</b> — глобоидальный червяк и ролик.</li>
+      <li><b>Многозаходные червяки</b> (z<sub>1</sub> = 2–4) ставят, когда важнее КПД, чем удержание.</li>
+    </ul>
+    <p class="note">Осторожно: при вибрации трение покоя падает, и «самотормозящая» передача может проскальзывать. На лифтах и подъёмниках всё равно ставят тормоз. Потери в подшипниках здесь не учтены.</p>
+  </section>
+  <p class="foot">Тренажёр открывается без входа и ничего не отправляет · <a href="https://metaphys23.github.io/inzheneriya/">Инженерия на Тезаурусе</a></p>
+</div>
+<script>
+/*@CORE_JS@*/
+</script>
+<script>
+(function(){
+'use strict';
+const g = 9.8, R_DR = 0.05, N1 = 1500, DEG = 180 / Math.PI;
+const row = (a, b, c) => '<dt>' + a + '</dt><dd' + (c ? ' class="' + c + '"' : '') + '>' + b + '</dd>';
+function worm(p){
+  const gm = Math.atan(p.z1 / p.q), ph = Math.atan(p.f), eta = Math.tan(gm) / Math.tan(gm + ph), lock = gm <= ph + 1e-12;
+  const eb = lock ? 0 : Math.tan(gm - ph) / Math.tan(gm), i = p.z2 / p.z1, Md = p.m * g * R_DR;
+  return {gm, ph, eta, lock, eb, i, Md, M1: Md / (i * eta), n2: N1 / i, v: 2 * Math.PI * N1 / i / 60 * R_DR};
+}
+const V = {p: {z1: 1, q: 16, z2: 40, f: 0.07, m: 100}, motor: true, nums: true, chart: true};
+let th2 = 0, w2 = 0, sL = 0, th1 = 0;
+
+// ---------- сцена ----------
+const cv = RC.$('#cv'), ch = RC.$('#ch');
+function drawScene(dt){
+  const {ctx, W, H} = RC.prep(cv), C = RC.col(), p = V.p, s = worm(p);
+  const Rw = Math.min(H * 0.3, W * 0.21), L = Math.min(W * 0.55, Rw * 2.9), mw = Math.min(W * 0.12, 80), cx = Math.max(W * 0.40, mw + 20 + L / 2);
+  const mod = 2 * Rw / p.z2, d1 = p.q * mod, cy = H * 0.10 + d1 + Rw + 8;
+  const rd = Rw * 0.36, W2UP = 2 * Math.PI * 0.05;        // визуальная скорость колеса при подъёме
+  // динамика картинки: подъём / удержание / сползание с разгоном
+  // подъём — против часовой (трос справа идёт вверх); сползание — по часовой с разгоном
+  if (V.motor) w2 = -W2UP; else if (s.lock) w2 = 0; else w2 = Math.min(1.2, Math.max(w2, 0) + (0.5 * s.eb + 0.02) * dt);
+  th2 += w2 * dt; th1 += Math.max(-30, Math.min(30, w2 * s.i)) * dt;
+  // колесо (бронза) и барабан
+  RC.gear(ctx, cx, cy, p.z2, Rw, th2, C.bronze + '55', C.bronze, {noHub: true});
+  ctx.fillStyle = C.bronze; ctx.beginPath(); ctx.arc(cx, cy, rd, 0, 2 * Math.PI); ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = C.paper; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + rd * 0.85 * Math.cos(th2), cy + rd * 0.85 * Math.sin(th2)); ctx.stroke();
+  // червяк: цилиндр над колесом, витки — видимая половина винтовой линии
+  const yw = cy - Rw - d1 / 2 + mod * 0.2, x0 = cx - L / 2, pitch = Math.PI * mod, lead = p.z1 * pitch;
+  ctx.fillStyle = C.steel; RC.rrect(ctx, x0, yw - d1 / 2, L, d1, Math.min(10, d1 / 3)); ctx.fill();
+  ctx.save(); RC.rrect(ctx, x0, yw - d1 / 2, L, d1, Math.min(10, d1 / 3)); ctx.clip();
+  const ph0 = cx + Rw * (th2 + Math.PI / 2) + pitch / 2 - lead / 4;
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6;
+  for (let k = -Math.ceil(L / pitch) - 4; k <= Math.ceil(L / pitch) + 4; k++) {
+    ctx.beginPath();
+    for (let j = 0; j <= 16; j++) { const f = -Math.PI / 2 + Math.PI * j / 16, x = ph0 + k * pitch + lead * f / (2 * Math.PI), y = yw + d1 / 2 * Math.sin(f); j ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke();
+  }
+  ctx.restore(); ctx.strokeStyle = C.ink2; ctx.lineWidth = 1; RC.rrect(ctx, x0, yw - d1 / 2, L, d1, Math.min(10, d1 / 3)); ctx.stroke();
+  // мотор слева на оси червяка
+  const mh = Math.max(d1 * 1.3, 34), mx = Math.max(6, x0 - mw - 14);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(mx + mw, yw); ctx.lineTo(x0, yw); ctx.stroke();
+  ctx.fillStyle = V.motor ? C.f1 : C.rule; RC.rrect(ctx, mx, yw - mh / 2, mw, mh, 8); ctx.fill();
+  RC.text(ctx, V.motor ? 'мотор' : 'выкл', mx + mw / 2, yw, {align: 'center', color: V.motor ? '#fff' : C.ink2, weight: 700, size: 12});
+  const fx = mx + mw + (x0 - mx - mw) / 2; ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(fx, yw + (mh * 0.3) * Math.sin(th1), 3.5, 0, 2 * Math.PI); ctx.fill();
+  // трос и груз
+  const lx = cx + rd, yTop = cy + rd * 0.3, yBot = H - 56, span = Math.max(30, yBot - yTop - 40);
+  sL += -w2 * rd * dt; if (sL > span) sL = 0; if (sL < 0) sL = span;
+  const ly = yBot - sL, lw = Math.max(50, Math.min(70, W * 0.1));
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(lx, cy); ctx.lineTo(lx, ly); ctx.stroke();
+  ctx.fillStyle = C.ink2; RC.rrect(ctx, lx - lw / 2, ly, lw, 36, 4); ctx.fill();
+  RC.text(ctx, RC.fmt(p.m, 0) + ' кг', lx, ly + 18, {align: 'center', color: C.paper, weight: 700, size: 13});
+  // статус
+  const st = V.motor ? ['поднимает', C.ok] : s.lock ? ['мотор выключен — груз держится: самоторможение', C.ok] : ['мотор выключен — груз сползает и раскручивает червяк', C.bad];
+  RC.text(ctx, st[0], 12, H - 14, {color: st[1], weight: 700, size: 14});
+  const bx = Math.min(W - 12, cx + Rw + 150);
+  if (V.nums) {
+    RC.text(ctx, 'i = ' + RC.sig(s.i, 3), bx, H * 0.12 + 4, {align: 'right', mono: true, size: 13, weight: 700});
+    RC.text(ctx, 'γ = ' + RC.fmt(s.gm * DEG, 2) + '°', bx, H * 0.12 + 24, {align: 'right', mono: true, size: 13});
+    RC.text(ctx, 'φ = ' + RC.fmt(s.ph * DEG, 2) + '°', bx, H * 0.12 + 44, {align: 'right', mono: true, size: 13});
+  }
+}
+
+// ---------- график η(γ) ----------
+const CAT = []; [1, 2, 4].forEach(z1 => [8, 10, 12.5, 16, 20].forEach(q => CAT.push({z1, q})));
+function drawChart(){
+  const {ctx, W, H} = RC.prep(ch), C = RC.col(), p = V.p, s = worm(p);
+  const x0 = 48, x1 = W - 16, y0 = H - 30, y1 = 18, GM = 28;
+  const X = d => x0 + (x1 - x0) * d / GM, Y = e => y0 - (y0 - y1) * e;
+  ctx.strokeStyle = C.ink2; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, y1 - 4); ctx.lineTo(x0, y0); ctx.lineTo(x1, y0); ctx.stroke();
+  RC.text(ctx, 'угол подъёма витка γ, °', x1, y0 + 20, {align: 'right', size: 11, color: C.ink2}); RC.text(ctx, 'КПД', x0 + 6, y1, {size: 11, color: C.ink2});
+  for (let d = 0; d <= GM; d += 4) { ctx.beginPath(); ctx.moveTo(X(d), y0); ctx.lineTo(X(d), y0 + 4); ctx.stroke(); RC.text(ctx, String(d), X(d), y0 + 11, {align: 'center', size: 11, mono: true, color: C.ink2}); }
+  [0.5, 1].forEach(e => RC.text(ctx, (e * 100) + ' %', x0 - 6, Y(e), {align: 'right', size: 11, mono: true, color: C.ink2}));
+  const phd = s.ph * DEG;
+  ctx.fillStyle = C.bad; ctx.globalAlpha = 0.09; ctx.fillRect(x0, y1, X(phd) - x0, y0 - y1); ctx.globalAlpha = 1;
+  RC.text(ctx, 'держит', x0 + 4, y0 - 10, {size: 11, color: C.bad, weight: 700});
+  ctx.strokeStyle = C.ink2; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(x0, Y(0.5)); ctx.lineTo(x1, Y(0.5)); ctx.stroke(); ctx.setLineDash([]);
+  if (!V.chart) { RC.text(ctx, 'график откроется после решения', (x0 + x1) / 2, (y0 + y1) / 2, {align: 'center', color: C.ink2}); return; }
+  const curve = (fn, col, dash) => { ctx.strokeStyle = col; ctx.lineWidth = 2.2; ctx.setLineDash(dash || []); ctx.beginPath(); let st = false;
+    for (let j = 1; j <= 280; j++) { const d = GM * j / 280, e = fn(d / DEG); if (e == null) { st = false; continue; } st ? ctx.lineTo(X(d), Y(e)) : ctx.moveTo(X(d), Y(e)); st = true; } ctx.stroke(); ctx.setLineDash([]); };
+  curve(gm => Math.tan(gm) / Math.tan(gm + s.ph), C.f1);
+  curve(gm => gm > s.ph ? Math.tan(gm - s.ph) / Math.tan(gm) : null, C.f3, [6, 4]);
+  CAT.forEach(w => { const gm = Math.atan(w.z1 / w.q), e = Math.tan(gm) / Math.tan(gm + s.ph), cur = w.z1 === p.z1 && w.q === p.q;
+    ctx.fillStyle = cur ? C.res : C.ink2; ctx.beginPath(); ctx.arc(X(gm * DEG), Y(e), cur ? 6 : 3, 0, 2 * Math.PI); ctx.fill(); });
+  const cur = Math.atan(p.z1 / p.q) * DEG; RC.text(ctx, RC.fmt(s.eta * 100, 1) + ' %', X(cur) + 9, Y(s.eta) + 12, {size: 12, mono: true, weight: 700, color: C.res});
+}
+const loop = RC.loop(dt => { drawScene(dt); drawChart(); }); RC.playBtn(RC.$('#play'), loop);
+const mBtn = RC.$('#motor');
+function setMotor(on){ V.motor = on; mBtn.textContent = on ? 'Мотор: включён' : 'Мотор: выключен'; mBtn.setAttribute('aria-pressed', on); mBtn.className = on ? 'b' : 'b ghost'; }
+mBtn.addEventListener('click', () => setMotor(!V.motor));
+
+// ---------- Исследовать ----------
+let mode = '';
+const z1Seg = RC.seg(RC.$('#z1Seg'), 'z', () => exUpd()), qSeg = RC.seg(RC.$('#qSeg'), 'q', () => exUpd());
+const sz2 = RC.slider('z2', v => String(v), exUpd), sf = RC.slider('ff', v => RC.fmt(v, 3), exUpd), smm = RC.slider('mm', v => RC.fmt(v, 0) + ' кг', exUpd);
+function exUpd(){
+  if (mode !== 'ex') return;
+  V.p = {z1: +z1Seg.get(), q: +qSeg.get(), z2: sz2.get(), f: sf.get(), m: smm.get()}; V.nums = V.chart = true;
+  const s = worm(V.p);
+  RC.$('#rd').innerHTML = row('Передаточное число i', RC.sig(s.i, 3)) + row('Угол подъёма γ', RC.fmt(s.gm * DEG, 2) + '°') + row('Угол трения φ', RC.fmt(s.ph * DEG, 2) + '°') +
+    row('Самоторможение', s.lock ? 'да, γ ≤ φ' : 'нет, γ > φ', s.lock ? 'g' : 'w') + row('КПД при подъёме', RC.fmt(s.eta * 100, 1) + ' %') +
+    row('КПД обратного хода', s.lock ? '0 — держит' : RC.fmt(s.eb * 100, 1) + ' %') + row('Колесо', RC.sig(s.n2, 3) + ' об/мин') + row('Скорость груза', RC.sig(s.v, 3) + ' м/с') +
+    row('Момент на барабане', RC.sig(s.Md, 3) + ' Н·м') + row('Нужен мотору', RC.sig(s.M1, 3) + ' Н·м') + row('Мощность мотора', RC.sig(s.M1 * 2 * Math.PI * N1 / 60, 3) + ' Вт');
+  loop.redraw();
+}
+
+// ---------- Задача ----------
+const TP = {z1: 1, q: 16, z2: 40, f: 0.07, m: 100}, TS = worm(TP);
+const TK = {
+  1: {q: '<b>№ 1.</b> Найдите КПД передачи при подъёме груза.', lab: 'η =', unit: '%', ans: TS.eta * 100, tol: 0.01,
+      hints: ['Виток червяка — наклонная плоскость. Найдите её угол γ и угол трения φ.',
+              '<div class="fb"><span>tg γ = z<sub>1</sub> / q</span><span>tg φ = f</span><span>η = tg γ / tg(γ + φ)</span></div>',
+              'tg γ = 1/16 = 0,0625 → γ ≈ 3,58°; tg φ = 0,07 → φ ≈ 4,00°. Осталось найти tg 7,58°.'],
+      svo: '<b>Свойство.</b> Здесь γ < φ, и КПД меньше 50 %. Это не совпадение: у любой самотормозящей передачи η < ½.'},
+  2: {q: '<b>№ 2.</b> Какой момент должен развивать мотор на валу червяка, чтобы равномерно поднимать груз?', lab: 'M<sub>1</sub> =', unit: 'Н·м', ans: TS.M1, tol: 0.015,
+      hints: ['Момент на барабане создаёт сила тяжести груза. Редуктор увеличивает момент мотора в i·η раз.',
+              '<div class="fb"><span>M<sub>б</sub> = m · g · r</span><span>i = z<sub>2</sub> / z<sub>1</sub></span><span>M<sub>1</sub> = M<sub>б</sub> / (i · η)</span></div>',
+              'M<sub>б</sub> = 100 · 9,8 · 0,05 = 49 Н·м, i = 40, η — из задачи № 1 (≈ 0,470).'],
+      svo: '<b>Свойство.</b> Больше половины работы мотора уходит в нагрев червяка и колеса. Червячные редукторы греются — у больших делают рёбра и масляную ванну.'},
+  3: {q: '<b>№ 3.</b> Конструктор хочет поднять КПД и взять червяк потолще или потоньше. Какое <b>наименьшее</b> q из ряда 8; 10; 12,5; 16; 20 ещё даёт самоторможение (z<sub>1</sub> = 1, f = 0,07)?', lab: 'q =', unit: '', ans: 16, tol: 0, set: true,
+      hints: ['Груз держится, пока угол подъёма витка не больше угла трения: γ ≤ φ.',
+              'tg γ = 1/q, tg φ = f. Условие: 1/q ≤ 0,07.',
+              'q ≥ 1/0,07 ≈ 14,3. Какое ближайшее значение из ряда?'],
+      svo: '<b>Свойство.</b> Чем меньше q (тоньше червяк, круче виток), тем выше КПД — но при q = 12,5 груз уже сползает. Граница самоторможения: <span class="f">q ≥ z<sub>1</sub> / f</span>.'}
+};
+let tk = '1';
+const hints = RC.hints(RC.$('#tkHint'), RC.$('#tkHints'));
+RC.seg(RC.$('#tkSeg'), 'tk', k => { tk = k; tkShow(); });
+function tkShow(){
+  const T = TK[tk]; RC.$('#tkQ').innerHTML = T.q; RC.$('#tkL').innerHTML = T.lab; RC.$('#tkU').textContent = T.unit; RC.$('#tkA').value = '';
+  RC.msg(RC.$('#tkMsg'), '', ''); hints.reset(T.hints); RC.$('#tkSvo').hidden = true;
+  V.p = Object.assign({}, TP); V.nums = false; V.chart = false; setMotor(true); loop.redraw();
+}
+function tkCheck(){
+  const T = TK[tk], a = RC.num(RC.$('#tkA').value), el = RC.$('#tkMsg');
+  if (!isFinite(a) || a <= 0) { RC.msg(el, 'bad', 'Введите положительное число (десятичная запятая).'); return; }
+  const good = T.set ? a === T.ans : RC.near(a, T.ans, T.tol);
+  if (good) {
+    RC.msg(el, 'ok', 'Верно! ' + (tk === '1' ? 'η ≈ ' + RC.fmt(TS.eta * 100, 1) + ' %.' : tk === '2' ? 'M₁ ≈ ' + RC.fmt(TS.M1, 2) + ' Н·м.' : 'При q = 16 угол подъёма 3,58° меньше угла трения 4,00° — мотор выключен, груз висит.'));
+    RC.$('#tkSvo').innerHTML = T.svo; RC.$('#tkSvo').hidden = false; V.nums = V.chart = true; if (tk === '3') setMotor(false); loop.redraw(); return;
+  }
+  let t = 'Не сходится. ';
+  if (tk === '1') {
+    if (RC.near(a, 0.0625 / 0.07 * 100, 0.01)) t = 'Это tg γ / tg φ. В знаменателе — тангенс суммы углов: η = tg γ / tg(γ + φ).';
+    else if (RC.near(a, TS.eta, 0.02)) t = 'Это доля, а ответ нужен в процентах.';
+    else if (RC.near(a, 0.0625 / (0.0625 + 0.07) * 100, 0.01)) t = 'Тангенсы нельзя складывать: tg(γ + φ) ≠ tg γ + tg φ. Найдите углы, сложите, потом возьмите тангенс.';
+    else if (a > 50) t = 'КПД больше 50 % — тогда передача не держала бы груз. Проверьте углы: tg γ = 1/16, tg φ = 0,07.';
+  } else if (tk === '2') {
+    if (RC.near(a, 1.225, 0.015)) t = 'Это момент без потерь на трение. С таким мотором груз не поедет: КПД меньше 50 %, нужно больше чем вдвое.';
+    else if (RC.near(a, 49 * TS.eta / 40, 0.02)) t = 'КПД надо не умножать, а делить: из-за трения мотору нужно больше, а не меньше.';
+    else if (RC.near(a, 49 / TS.eta, 0.02) || RC.near(a, 49, 0.01)) t = 'Забыли передаточное число: червяк вращается в 40 раз быстрее колеса, и момент на нём во столько же раз меньше (без учёта трения).';
+  } else {
+    const qs = [8, 10, 12.5, 16, 20];
+    if (!qs.includes(a)) t = 'Выберите значение из ряда 8; 10; 12,5; 16; 20.';
+    else { const s = worm(Object.assign({}, TP, {q: a}));
+      V.p = Object.assign({}, TP, {q: a}); V.nums = true; setMotor(false);
+      t = s.lock ? 'При q = ' + RC.fmt(a, 1).replace(',0', '') + ' груз держится, но это не наименьшее q: КПД ' + RC.fmt(s.eta * 100, 1) + ' % можно поднять.' :
+        'При q = ' + RC.fmt(a, 1).replace(',0', '') + ' угол подъёма ' + RC.fmt(s.gm * DEG, 2) + '° больше угла трения 4,00°: мотор выключен — смотрите, груз сползает.'; }
+  }
+  RC.msg(el, 'bad', t); loop.redraw();
+}
+RC.$('#tkCheck').addEventListener('click', tkCheck);
+RC.$('#tkA').addEventListener('keydown', e => { if (e.key === 'Enter') tkCheck(); });
+
+// ---------- Игра ----------
+const GC = CAT.filter(w => w.z1 <= 2), score = RC.score(RC.$('#gScore')); let G = null;
+const wl = w => w.z1 + ' / ' + String(w.q).replace('.', ',');
+function gNew(){
+  const f = RC.pick([0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.15]), type = Math.random() < 0.6 ? 'best' : 'min';
+  const X = type === 'min' ? RC.pick([35, 40, 45, 55, 60]) : 0;
+  const ev = GC.map(w => worm({z1: w.z1, q: w.q, z2: 40, f, m: 100}));
+  let ok;
+  if (type === 'best') { const lk = ev.filter(s => s.lock), best = lk.length ? Math.max(...lk.map(s => s.eta)) : -1; ok = ev.map(s => s.lock && s.eta >= best - 1e-9); }
+  else ok = ev.map(s => s.lock && s.eta * 100 >= X);
+  G = {f, type, X, ev, ok, done: false};
+  RC.$('#gQ').innerHTML = 'Пара сталь — бронза, <b>f = ' + RC.fmt(f, 2) + '</b>, колесо z<sub>2</sub> = 40. ' + (type === 'best' ? 'Нужна лебёдка, которая <b>держит груз без тормоза</b>, и при этом с <b>наибольшим КПД</b>.' : 'Нужна передача, которая <b>держит груз без тормоза</b> и имеет КПД <b>не меньше ' + X + ' %</b>.') + ' Червяки: заходы / q.';
+  RC.$('#gChips').innerHTML = GC.map((w, k) => '<button data-k="' + k + '" aria-pressed="false">' + wl(w) + '</button>').join('');
+  RC.$('#gChips').querySelectorAll('button').forEach(b => b.addEventListener('click', () => gAns(+b.dataset.k)));
+  RC.msg(RC.$('#gMsg'), '', ''); V.p = {z1: 1, q: 10, z2: 40, f, m: 100}; V.nums = false; V.chart = false; setMotor(true); loop.redraw();
+}
+function gAns(k){
+  if (!G || G.done) return; G.done = true;
+  const any = G.ok.some(x => x), good = k < 0 ? !any : G.ok[k]; score.add(good);
+  RC.$('#gChips').querySelectorAll('button').forEach(b => { const j = +b.dataset.k; if (G.ok[j]) b.classList.add('good'); if (j === k && !good) b.classList.add('badc'); });
+  const phd = Math.atan(G.f) * DEG; let t;
+  if (k < 0) t = any ? 'Есть подходящий: отмечен зелёным.' : (G.type === 'min' && G.X >= 50 ? 'Верно: невозможно. Самотормозящая передача всегда имеет КПД меньше 50 %.' :
+      'Верно: невозможно. Угол трения ' + RC.fmt(phd, 2) + '° меньше угла подъёма даже самого пологого витка 1 / 20 (2,86°) — груз сползёт с любым червяком.');
+  else { const s = G.ev[k];
+    t = (good ? 'Верно! ' : '') + 'Червяк ' + wl(GC[k]) + ': γ = ' + RC.fmt(s.gm * DEG, 2) + '°, φ = ' + RC.fmt(phd, 2) + '° — ' + (s.lock ? 'держит' : 'груз сползает') + ', КПД ' + RC.fmt(s.eta * 100, 1) + ' %.' +
+      (good ? '' : !any ? (G.type === 'min' && G.X >= 50 ? ' Подходящего нет: у самотормозящей передачи КПД всегда меньше 50 %.' : ' Подходящего нет — правильный ответ «Невозможно».') : s.lock ? ' Держит, но есть вариант лучше.' : '');
+    V.p = {z1: GC[k].z1, q: GC[k].q, z2: 40, f: G.f, m: 100}; setMotor(false); }
+  V.nums = V.chart = true; RC.msg(RC.$('#gMsg'), good ? 'ok' : 'bad', t); loop.redraw();
+}
+RC.$('#gNo').addEventListener('click', () => gAns(-1));
+RC.$('#gNext').addEventListener('click', gNew);
+
+RC.tabs(k => { mode = k; if (k === 'ex') { setMotor(true); exUpd(); } else if (k === 'task') tkShow(); else gNew(); });
+})();
+</script>
+</body></html>

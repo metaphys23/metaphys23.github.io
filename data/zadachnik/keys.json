@@ -1,0 +1,18 @@
+{
+ "v": 1,
+ "alg": "AES-GCM-256",
+ "kdf": "PBKDF2-SHA256",
+ "iter": 310000,
+ "check": {
+  "iv": "apaVM4MEe1hTXwI2",
+  "ct": "L17wEomcXNUmnUBaOi/wzkbrmPPYcjbCe5xtLIsmPMEPSA=="
+ },
+ "wraps": [
+  {
+   "role": "teacher",
+   "salt": "rVaCvwgHGM5YmeZnLHvqVw==",
+   "iv": "7/4ocsT4NCcCnQ4v",
+   "ct": "/TGF341AS4e1Hvd7q6u7FegNyHD29RT9BIjZgiVb/BqARg9VYa8817tcZYuBoMgy"
+  }
+ ]
+}

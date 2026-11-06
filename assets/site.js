@@ -5,7 +5,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
   var main = $('main'), PAGE = main.dataset.page;
-  var MENU = [['/klass/', 'Классы', 'klass'], ['/temy/', 'Темы', 'temy'], ['/ekzameny/', 'Экзамены', 'ekzameny'], ['/uchebnik/', 'Учебник', 'uchebnik'],
+  var MENU = [['/klass/', 'Классы', 'klass'], ['/temy/', 'Темы', 'temy'], ['/ekzameny/', 'Экзамены', 'ekzameny'], ['/uchebnik/', 'Учебник', 'uchebnik'], ['/zadachnik/', 'Задачник', 'zadachnik'],
     ['/praktikum/', 'Практикум', 'praktikum'], ['/eksperiment/', 'Эксперимент', 'eksperiment'], ['/inzheneriya/', 'Инженерия', 'inzheneriya'], ['/karta/', 'Карта', 'karta']];
   var SECTIONS = {uchebnik: ['Учебник', 'Теория по шести шагам Карты мышления: понятия → закономерности → обоснование → устройство мира → действие → проверка.', 'var(--s1)'],
     praktikum: ['Практикум', 'Тренажёры, тесты Т1–Т3, листки и ДЗ — по темам и номерам ОГЭ/ЕГЭ.', 'var(--s5)'],
@@ -101,7 +101,7 @@
     document.addEventListener('click', function (e) { var a = e.target.closest('a[data-id]'); if (a) try { localStorage.setItem('mf:seen:' + a.dataset.id, Date.now()); } catch (er) {} });
 
     // ---------- страницы
-    var H = '';
+    var H = ['zadachnik'].indexOf(PAGE) >= 0 ? null : '';  // задачник рисует assets/zadachnik.js
     if (PAGE === 'home') {
       var fresh = C.filter(visible).slice().sort(function (a, b) { return (b.added || '').localeCompare(a.added || ''); }).slice(0, 5);
       H = '<h1>Тезаурус</h1><p class="sub">Физика, математика и инженерия: теория, тренажёры, тесты и домашние задания. Всё читается без входа; код ученика нужен, чтобы видеть свои задания и отправлять работы.</p>' +

@@ -234,6 +234,25 @@
    "test": "oge-kin-t2"
   },
   {
+   "id": "i-blink",
+   "title": "Мигание: digitalWrite и delay",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "arduino",
+   "sub": "Arduino: выходы",
+   "classes": [
+    8,
+    9,
+    10,
+    11
+   ],
+   "url": "/fizika-trenazhery/inzh-blink.html",
+   "desc": "Период и частота из двух delay, вспышек в минуту, когда мигание сливается в ровный свет.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-06"
+  },
+  {
    "id": "i-shim",
    "title": "ШИМ: скважность, среднее напряжение, яркость",
    "kind": "trenazher",
@@ -270,6 +289,82 @@
    "status": "otkryto",
    "level": "baza",
    "added": "2026-11-05"
+  },
+  {
+   "id": "i-ogni",
+   "title": "Бегущие огни: массив и цикл for",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "arduino",
+   "sub": "Arduino: выходы",
+   "classes": [
+    8,
+    9,
+    10,
+    11
+   ],
+   "url": "/fizika-trenazhery/inzh-ogni.html",
+   "desc": "Массив выводов pins[], индексы с нуля, шаги цикла for, «сканер» туда-обратно, выход за границы массива.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-06"
+  },
+  {
+   "id": "i-millis",
+   "title": "Таймеры millis: несколько дел сразу",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "arduino",
+   "sub": "Arduino: время",
+   "classes": [
+    8,
+    9,
+    10,
+    11
+   ],
+   "url": "/fizika-trenazhery/inzh-millis.html",
+   "desc": "millis() против delay(): два светодиода со своими периодами, совпадения через НОК, переполнение счётчика.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-06"
+  },
+  {
+   "id": "i-rgb",
+   "title": "RGB-светодиод и Serial: смешение цветов",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "arduino",
+   "sub": "Arduino: выходы",
+   "classes": [
+    8,
+    9,
+    10,
+    11
+   ],
+   "url": "/fizika-trenazhery/inzh-rgb.html",
+   "desc": "Сложение R, G, B, общий катод и общий анод (255 − x), цвет из монитора порта, байты и время передачи.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-06"
+  },
+  {
+   "id": "i-7seg",
+   "title": "7-сегментный индикатор: код цифры",
+   "kind": "trenazher",
+   "section": "inzheneriya",
+   "topic": "arduino",
+   "sub": "Arduino: индикаторы",
+   "classes": [
+    8,
+    9,
+    10,
+    11
+   ],
+   "url": "/fizika-trenazhery/inzh-7seg.html",
+   "desc": "Сегменты a…g, код цифры битами (0b…), общий катод и анод, ток через общий вывод.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-06"
   },
   {
    "sub": "Движение по окружности",

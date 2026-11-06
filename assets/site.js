@@ -100,8 +100,8 @@
     }
     document.addEventListener('click', function (e) { var a = e.target.closest('a[data-id]'); if (a) try { localStorage.setItem('mf:seen:' + a.dataset.id, Date.now()); } catch (er) {} });
 
-    // ---------- страницы
-    var H = '';
+    // ---------- страницы (страницы со своим скриптом — me, admin — рисуют main сами; site.js даёт им только шапку)
+    var H = ['me', 'admin'].indexOf(PAGE) >= 0 ? null : '';
     if (PAGE === 'home') {
       var fresh = C.filter(visible).slice().sort(function (a, b) { return (b.added || '').localeCompare(a.added || ''); }).slice(0, 5);
       H = '<h1>Тезаурус</h1><p class="sub">Физика, математика и инженерия: теория, тренажёры, тесты и домашние задания. Всё читается без входа; код ученика нужен, чтобы видеть свои задания и отправлять работы.</p>' +

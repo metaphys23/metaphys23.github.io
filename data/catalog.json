@@ -685,6 +685,73 @@
    "level": "star",
    "url": "/fizika-trenazhery/trenazhery/doska.html",
    "desc": "График ускорений от силы, порог проскальзывания, игра «Вместе или проскользнёт?»."
+  },
+  {
+   "status": "otkryto",
+   "added": "2026-11-06",
+   "section": "uchebnik",
+   "topic": "динамика",
+   "sub": "Сила упругости",
+   "id": "u-uprugost",
+   "title": "Учебник: сила упругости, закон Гука, модуль Юнга",
+   "kind": "konspekt",
+   "classes": [
+    9,
+    10
+   ],
+   "level": "baza",
+   "url": "/fizika-trenazhery/uchebnik/sila-uprugosti.html",
+   "desc": "Напряжение и деформация, диаграммы растяжения, модуль Юнга, коэффициент Пуассона, соединения пружин, вязкоупругость, нити и связи; 6 тренажёров и 19 задач с решениями."
+  },
+  {
+   "status": "otkryto",
+   "added": "2026-11-06",
+   "section": "praktikum",
+   "topic": "динамика",
+   "sub": "Сила упругости",
+   "id": "t-pruzhiny",
+   "title": "Соединение пружин",
+   "kind": "trenazher",
+   "classes": [
+    9,
+    10
+   ],
+   "level": "baza",
+   "url": "/fizika-trenazhery/trenazhery/pruzhiny.html",
+   "desc": "Последовательно, параллельно, смешанно; игра «Собери жёсткость»."
+  },
+  {
+   "status": "otkryto",
+   "added": "2026-11-06",
+   "section": "praktikum",
+   "topic": "динамика",
+   "sub": "Сила упругости",
+   "id": "t-provoloka",
+   "title": "Проволока под нагрузкой: модуль Юнга и прочность",
+   "kind": "trenazher",
+   "classes": [
+    9,
+    10
+   ],
+   "level": "baza",
+   "url": "/fizika-trenazhery/trenazhery/provoloka.html",
+   "desc": "Напряжение, удлинение, подбор сечения; игра «Выдержит или порвётся?»."
+  },
+  {
+   "status": "otkryto",
+   "added": "2026-11-06",
+   "section": "praktikum",
+   "topic": "динамика",
+   "sub": "Сила упругости",
+   "id": "t-nit",
+   "title": "От пружины к нити: натяжение как реакция связи",
+   "kind": "trenazher",
+   "classes": [
+    10
+   ],
+   "level": "star",
+   "url": "/fizika-trenazhery/trenazhery/nit.html",
+   "desc": "Жёсткость от мягкой пружины до нити, колебания и среднее натяжение; игра «Порвётся ли нить?»."
   }
  ]
 }

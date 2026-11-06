@@ -23,3 +23,8 @@ table.w tr.sel td{background:color-mix(in srgb,var(--acc) 8%,transparent)}
 @media print{.top,.no-print,h1,.sub{display:none!important}main{padding:0;max-width:none}
   .cards{display:grid;grid-template-columns:1fr 1fr;gap:0}.cardp{border:1px dashed #999;padding:12mm 8mm;break-inside:avoid;height:64mm}.cardp b{font:700 22px ui-monospace,monospace;letter-spacing:.08em;display:block;margin:6px 0}}
 .cards{display:none}@media print{.cards{display:grid}}
+/* v3: редактор теории — текст слева, предпросмотр справа; проверка выводов */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}.split .editor{min-height:70vh}.pvw{max-height:70vh;overflow:auto;background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:4px 14px}
+@media (max-width:900px){.split{grid-template-columns:1fr}.split .editor{min-height:45vh}.pvw{max-height:none}}
+.tb{align-items:end;gap:6px}.tb .field{margin:0}.lint{list-style:none;padding:0;margin:8px 0;display:grid;gap:4px;font-size:14.5px}.lint li{padding:6px 10px;border-radius:8px;background:var(--sheet);border:1px solid var(--rule);cursor:pointer}
+.lint .bad{color:var(--bad)}.lint .warn,.warn{color:var(--warn)}.lint .ok{color:var(--ok);cursor:default}

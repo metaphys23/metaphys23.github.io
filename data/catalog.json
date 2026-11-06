@@ -431,6 +431,22 @@
     11
    ],
    "url": "/fizika-trenazhery/trenazhery/peredachi.html"
+  },
+  {
+   "id": "u10-obrazec-teorii",
+   "title": "Образец теории: центростремительное ускорение",
+   "kind": "konspekt",
+   "section": "uchebnik",
+   "topic": "кинематика",
+   "sub": "Движение по окружности",
+   "classes": [
+    10
+   ],
+   "url": "/uchebnik/obrazec-teorii/",
+   "desc": "Формат страницы учебника: блоки Карты, вывод в двух формах.",
+   "status": "proba",
+   "level": "baza",
+   "added": "2026-11-06"
   }
  ]
 }

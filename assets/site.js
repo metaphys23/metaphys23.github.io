@@ -31,6 +31,8 @@
       : '<a class="btn sm" href="/voiti/">Войти как ученик</a>') + '</div></div></header>');
   $('.burger').addEventListener('click', function () { var m = $('#menu'), o = m.classList.toggle('open'); this.setAttribute('aria-expanded', o); });
   var lo = $('#logout'); if (lo) lo.addEventListener('click', function (e) { e.preventDefault(); if (confirm('Выйти? Код забудется на этом устройстве, ответы в тестах останутся.')) { setStudent(null); location.href = '/'; } });
+  // окно «Замечание хабу» — только владельцу: на этом устройстве есть вход в админку (mf:admin_token) или включено ссылкой …/#pravki
+  try { if (location.hash === '#pravki') localStorage.setItem('mf:pravki', '1'); if (localStorage.getItem('mf:admin_token') || localStorage.getItem('mf:pravki')) { var ps = document.createElement('script'); ps.src = '/assets/pravki.js'; ps.defer = true; document.head.appendChild(ps); } } catch (e) {}
   document.body.insertAdjacentHTML('beforeend', '<footer>Тезаурус · физика, математика, инженерия. Задания ФИПИ — из открытого банка ФГБНУ «ФИПИ» с указанием номера. Ошибка на странице — напишите учителю.</footer>');
 
   // ---------- данные
@@ -159,6 +161,19 @@
         location.href = '/zadano/';
       });
       $('#code').addEventListener('blur', function () { this.value = normCode(this.value); });
+    } else if (PAGE === 'teoriya') {
+      // страница учебника: текст — файл .md рядом (правится в админке «Редактор»), рендер — assets/md.js
+      var self = C.filter(function (x) { return x.url === location.pathname; })[0] || {};
+      H = null; fetch(main.dataset.src || 'index.md', {cache: 'no-cache'}).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); }).then(function (src) {
+        var R = window.MD.render(src), m = R.meta, title = m.title || self.title || document.title;
+        document.title = title + ' · Учебник';
+        var toc = R.blocks.filter(function (b) { return b.num; });
+        main.innerHTML = '<p class="crumbs"><a href="/uchebnik/">Учебник</a>' + (self.topic ? ' / ' + esc(topicTitle[self.topic] || self.topic) : '') + (self.sub ? ' / ' + esc(self.sub) : '') + '</p><h1>' + esc(title) + '</h1>' +
+          (toc.length ? '<details class="toc"><summary>Блоки страницы · ' + toc.length + '</summary><ol>' + toc.map(function (b) { var z = window.MD.blocks[b.key]; return '<li><a href="#' + b.num + '">' + b.num + ' ' + (z ? esc(z[0]) + ' ' + z[1] : esc(b.code)) + '</a> ' + esc(b.title.replace(/\$[^$]*\$/g, '…')) + '</li>'; }).join('') + '</ol></details>' : '') +
+          '<article class="teo">' + R.html + '</article>';
+        window.MD.bind(main);
+        if (location.hash) { var t = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (t) t.scrollIntoView(); }
+      }).catch(function (e) { main.innerHTML = '<p class="empty">Не удалось загрузить текст страницы (' + esc(e.message) + '). Обновите страницу.</p>'; });
     } else if (PAGE === 'zadano') {
       if (!me) { H = '<h1>Задано мне</h1><p class="empty">Сначала <a href="/voiti/">войдите по коду</a> — тогда здесь появятся задания вашего класса.</p>'; }
       else { var g = Z.groups[me.group] || {};

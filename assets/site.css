@@ -53,3 +53,19 @@ details.topic>div{padding:0 0 14px}
 .steps div{border-radius:10px;padding:12px;color:#fff;font-weight:700}.steps small{display:block;font-weight:400;opacity:.9}
 footer{max-width:1080px;margin:0 auto;padding:20px 14px 40px;color:var(--ink-2);font-size:13.5px;border-top:1px solid var(--rule)}
 @media (max-width:440px){.who>span{display:none}.logo{font-size:16px}}
+/* учебник: блоки Карты мышления, вывод в двух формах (assets/md.js) */
+.teo{max-width:760px}.teo p{margin:.5em 0}.teo img{max-width:100%;border-radius:8px}.teo pre{overflow:auto;background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:10px}
+.teo .mathb{overflow-x:auto;overflow-y:hidden;padding:2px 0}.teo .tw{overflow-x:auto}.teo table{border-collapse:collapse;margin:8px 0}.teo th,.teo td{border:1px solid var(--rule);padding:6px 10px;text-align:left}
+.blk{--c:var(--s6);background:var(--sheet);border:1px solid var(--rule);border-left:5px solid var(--c);border-radius:12px;padding:10px 16px 12px;margin:14px 0;scroll-margin-top:72px}
+.blk.s1{--c:var(--s1)}.blk.s2{--c:var(--s2)}.blk.s3{--c:var(--s3)}.blk.s4{--c:var(--s4)}.blk.s5{--c:var(--s5)}.blk.s6{--c:var(--s6)}.blk.unk{border-left-style:dashed}
+.blk-h{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;color:var(--c);font-weight:700}.blk-n{font:700 14px var(--mono);color:inherit;text-decoration:none}.blk-z{font:700 15px var(--mono)}.blk-c{font:600 12px var(--mono);letter-spacing:.04em;opacity:.85}.blk-t{color:var(--ink)}
+.blk .blk{margin:8px 0}.ref{font-weight:600}.toc{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:6px 14px;margin:10px 0;max-width:760px}.toc ol{list-style:none;padding:0;margin:6px 0;display:grid;gap:3px}
+.dv-tabs{display:flex;gap:6px;margin:10px 0 4px;flex-wrap:wrap}.dv-tabs button{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);font:600 14px var(--body);cursor:pointer}
+.dv-tabs button[aria-selected=true]{background:var(--c,var(--ink));border-color:var(--c,var(--ink));color:#fff}.dv-cap{font-size:13.5px;color:var(--ink-2);margin:6px 0}
+@media print{.dv-tabs{display:none}.dv-p[hidden]{display:block!important}.pv-btn,.pv{display:none!important}}
+/* окно «Замечание хабу» (assets/pravki.js) — видит только владелец */
+.pv-btn{position:fixed;right:14px;bottom:14px;z-index:60;min-height:48px;padding:0 16px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);font:600 15px var(--body);box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
+.pv{position:fixed;right:14px;bottom:72px;z-index:61;width:min(420px,calc(100vw - 28px));max-height:calc(100vh - 100px);overflow:auto;background:var(--sheet);color:var(--ink);border:1px solid var(--rule);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.22);padding:14px}
+.pv h3{margin:0 0 6px;font-size:17px}.pv .pv-where{font-size:13.5px;color:var(--ink-2);margin:0 0 6px}.pv blockquote{margin:6px 0;padding:6px 10px;border-left:3px solid var(--rule);color:var(--ink-2);font-size:14px;max-height:120px;overflow:auto;white-space:pre-wrap}
+.pv label{display:block;font-size:13.5px;color:var(--ink-2);margin:8px 0 4px}.pv select,.pv textarea,.pv input{width:100%;box-sizing:border-box;font:15px var(--body);padding:8px 10px;border:1px solid var(--rule);border-radius:10px;background:var(--paper);color:var(--ink)}
+.pv textarea{min-height:120px;font:14px/1.45 var(--body)}.pv .row{margin-top:10px}.pv .msg{margin-top:8px}.pv .x{float:right;border:0;background:none;font-size:22px;line-height:1;color:var(--ink-2);cursor:pointer}

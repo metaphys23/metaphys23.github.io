@@ -523,6 +523,73 @@
    "status": "otkryto",
    "level": "star",
    "added": "2026-11-06"
+  },
+  {
+   "status": "otkryto",
+   "added": "2026-11-06",
+   "section": "uchebnik",
+   "topic": "динамика",
+   "sub": "Законы Ньютона",
+   "id": "u-nyuton",
+   "title": "Учебник: законы Ньютона",
+   "kind": "konspekt",
+   "classes": [
+    9,
+    10
+   ],
+   "level": "baza",
+   "url": "/fizika-trenazhery/uchebnik/zakony-nyutona.html",
+   "desc": "Сила и масса, ИСО, три закона, силы в механике, вес и невесомость, классические ситуации; встроенные тренажёры и 18 задач с решениями."
+  },
+  {
+   "status": "otkryto",
+   "added": "2026-11-06",
+   "section": "praktikum",
+   "topic": "динамика",
+   "sub": "Законы Ньютона",
+   "id": "t-naklonnaya",
+   "title": "Наклонная плоскость: силы и трение",
+   "kind": "trenazher",
+   "classes": [
+    9,
+    10
+   ],
+   "level": "baza",
+   "url": "/fizika-trenazhery/trenazhery/naklonnaya.html",
+   "desc": "Проекции сил, граница tg α = μ, задачи, игра «Что будет с бруском?»."
+  },
+  {
+   "status": "otkryto",
+   "added": "2026-11-06",
+   "section": "praktikum",
+   "topic": "динамика",
+   "sub": "Законы Ньютона",
+   "id": "t-bloki",
+   "title": "Нити и блоки: машина Атвуда, брусок и груз",
+   "kind": "trenazher",
+   "classes": [
+    9,
+    10
+   ],
+   "level": "baza",
+   "url": "/fizika-trenazhery/trenazhery/bloki.html",
+   "desc": "Ускорение, натяжение, сила на ось блока; игра «Подбери груз»."
+  },
+  {
+   "status": "otkryto",
+   "added": "2026-11-06",
+   "section": "praktikum",
+   "topic": "динамика",
+   "sub": "Законы Ньютона",
+   "id": "t-doska",
+   "title": "Брусок на доске: вместе или с проскальзыванием",
+   "kind": "trenazher",
+   "classes": [
+    10
+   ],
+   "level": "star",
+   "url": "/fizika-trenazhery/trenazhery/doska.html",
+   "desc": "График ускорений от силы, порог проскальзывания, игра «Вместе или проскользнёт?»."
   }
  ]
 }

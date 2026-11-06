@@ -1,21 +1,8 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Админка · Тезаурус</title><link rel="icon" href="data:,"><meta name="robots" content="noindex"><link rel="stylesheet" href="/assets/site.css">
-<style>
-.field input,.field select,.field textarea{font:16px var(--body);letter-spacing:0;text-transform:none;padding:9px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--paper);color:var(--ink);min-height:44px;width:100%}
-.field textarea{min-height:120px;font:14px/1.45 var(--mono)}.field label{font-size:14px;color:var(--ink-2)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.grid .field{margin:0}
-table.w{width:100%;border-collapse:collapse;background:var(--sheet);border:1px solid var(--rule);border-radius:10px;overflow:hidden;font-size:14.5px}table.w th,table.w td{padding:8px 10px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}table.w th{color:var(--ink-2);font-weight:600;font-size:13px}
-table.w input{font:15px var(--body);padding:5px 8px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);color:var(--ink);width:100%}
-.code{font:600 15px var(--mono);letter-spacing:.05em}.muted{color:var(--ink-2)}.right{text-align:right}.btn.danger{background:var(--bad);border-color:var(--bad)}
-.editor{font:14px/1.45 var(--mono);width:100%;min-height:60vh;padding:12px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet);color:var(--ink);tab-size:2}
-.split{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media (max-width:900px){.split{grid-template-columns:1fr}}
-.photo{max-width:100%;border:1px solid var(--rule);border-radius:8px;margin:6px 0}
-.menu a{cursor:pointer}
-@media print{.top,.no-print,h1,.sub{display:none!important}main{padding:0;max-width:none}
-  .cards{display:grid;grid-template-columns:1fr 1fr;gap:0}.cardp{border:1px dashed #999;padding:12mm 8mm;break-inside:avoid;height:64mm}.cardp b{font:700 22px ui-monospace,monospace;letter-spacing:.08em;display:block;margin:6px 0}}
-.cards{display:none}@media print{.cards{display:grid}}
-</style></head><body>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://storage.yandexcloud.net https://*.storage.yandexcloud.net; font-src 'self'; connect-src 'self' https://*.apigw.yandexcloud.net; object-src 'none'; base-uri 'none'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Админка · Тезаурус</title><link rel="icon" href="data:,"><meta name="robots" content="noindex, nofollow"><link rel="stylesheet" href="/assets/site.css"><link rel="stylesheet" href="/assets/cab.css">
+</head><body>
 <header class="top no-print"><div class="in"><a class="logo" href="/">Тезаурус</a><nav class="menu" id="tabs" aria-label="Разделы админки"></nav><div class="who"><span id="who"></span><a href="#" id="logout" hidden>выйти</a></div></div></header>
-<main data-page="admin"><h1 class="no-print">Админка учителя</h1><div id="app"><p class="sub">Загружаю…</p></div></main>
+<main data-page="admin"><h1 class="no-print">Админка владельца</h1><div id="app"><p class="sub">Загружаю…</p></div></main>
 <script src="/config.js"></script><script src="/assets/api.js"></script><script src="/assets/admin.js" defer></script>
 </body></html>

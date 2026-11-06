@@ -1,0 +1,25 @@
+/* Кабинеты (админка, учитель): формы, таблицы, редакторы. Цвета — из site.css. */
+.field input,.field select,.field textarea{font:16px var(--body);letter-spacing:0;text-transform:none;padding:9px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--paper);color:var(--ink);min-height:44px;width:100%}
+.field textarea{min-height:90px;font:14px/1.45 var(--mono)}.field label{font-size:14px;color:var(--ink-2)}
+.field input[type=checkbox]{width:auto;min-height:0}.chk{display:flex;gap:8px;align-items:center;font-size:15px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.grid .field{margin:0}
+table.w{width:100%;border-collapse:collapse;background:var(--sheet);border:1px solid var(--rule);border-radius:10px;overflow:hidden;font-size:14.5px}table.w th,table.w td{padding:8px 10px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}table.w th{color:var(--ink-2);font-weight:600;font-size:13px}
+table.w input,table.w select{font:15px var(--body);padding:5px 8px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);color:var(--ink);width:100%}
+table.w tr.sel td{background:color-mix(in srgb,var(--acc) 8%,transparent)}
+.code{font:600 15px var(--mono);letter-spacing:.05em}.muted{color:var(--ink-2)}.right{text-align:right}.btn.danger{background:var(--bad);border-color:var(--bad)}.num{font:600 15px var(--mono);text-align:right}
+.editor{font:14px/1.45 var(--mono);width:100%;min-height:60vh;padding:12px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet);color:var(--ink);tab-size:2}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}@media (max-width:900px){.split{grid-template-columns:1fr}}
+.photo{max-width:100%;border:1px solid var(--rule);border-radius:8px;margin:6px 0}
+.menu a{cursor:pointer}
+.task{border:1px solid var(--rule);border-radius:12px;padding:12px;margin:10px 0;background:var(--sheet)}
+.task .head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.task .head b{font:700 15px var(--mono)}
+.block{border-left:4px solid var(--acc);padding-left:12px;margin:16px 0}
+.pill{font:600 12.5px var(--body);padding:3px 8px;border-radius:999px;border:1px solid var(--rule);color:var(--ink-2);white-space:nowrap}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:12px 0}.kpi div{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:14px}.kpi b{display:block;font:700 26px var(--mono)}.kpi span{color:var(--ink-2);font-size:13.5px}
+.matrix{overflow:auto;max-width:100%}.matrix table{font-size:13.5px}.matrix th{position:sticky;top:0;background:var(--sheet)}.matrix td.c{text-align:center;font-family:var(--mono)}
+.bar{height:8px;border-radius:4px;background:var(--rule);overflow:hidden}.bar i{display:block;height:100%;background:var(--ok)}
+.secret{font:600 15px var(--mono);letter-spacing:.06em;background:var(--paper);border:1px dashed var(--rule);border-radius:8px;padding:10px;word-break:break-all}
+@media print{.top,.no-print,h1,.sub{display:none!important}main{padding:0;max-width:none}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:0}.cardp{border:1px dashed #999;padding:12mm 8mm;break-inside:avoid;height:64mm}.cardp b{font:700 22px ui-monospace,monospace;letter-spacing:.08em;display:block;margin:6px 0}}
+.cards{display:none}@media print{.cards{display:grid}}

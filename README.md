@@ -1,6 +1,6 @@
 # metaphys23.github.io — Тезаурус
 
-Сайт материалов (GitHub Pages, ветка main, корень). Движки тестов и тренажёры — репозиторий `fizika-trenazhery` (адрес `/fizika-trenazhery/`), домен общий.
+Сайт материалов (GitHub Pages, ветка main, корень). Движки тестов и тренажёры — репозиторий `tezaurus` (до 07.11.2026 назывался `fizika-trenazhery`; адрес `/tezaurus/`), домен общий.
 
 ## Как устроено
 - `data/catalog.json` — **все материалы, по одной записи**: тип (pdf, trenazher, t1–t3, dz, konspekt, lab), раздел (uchebnik, praktikum, eksperiment, inzheneriya), тема из `data/temy.json` (копия `hub/темы.yaml`), классы, адрес, статус (`otkryto` — в оглавлении, `klass` — только классу и в «Задано», `proba` — только по ссылке), уровень (база/★).
@@ -9,7 +9,7 @@
 - Страницы — пустые каркасы: `/`, `/klass/7…11/`, `/temy/`, `/ekzameny/`, `/uchebnik/`, `/praktikum/`, `/eksperiment/`, `/inzheneriya/`, `/karta/`, `/voiti/`, `/zadano/`.
 
 ## Добавить материал
-1. Файл — в папку по теме (или тест/тренажёр — в `fizika-trenazhery`).
+1. Файл — в папку по теме (или тест/тренажёр — в `tezaurus`).
 2. Запись в `data/catalog.json`; задать группе — запись в `data/zadano.json`.
 3. `python3 tools/build.py` — проверка данных (id, темы, файлы) и пересборка каркасов; ошибки — код возврата 1.
 

@@ -187,7 +187,7 @@
    "classes": [
     9
    ],
-   "url": "/fizika-trenazhery/slozhenie-sil.html",
+   "url": "/tezaurus/slozhenie-sil.html",
    "desc": "Равнодействующая на прямой и на плоскости через проекции.",
    "status": "otkryto",
    "level": "baza",
@@ -203,7 +203,7 @@
    "classes": [
     9
    ],
-   "url": "/fizika-trenazhery/exam.html?t=oge-kin-t1",
+   "url": "/tezaurus/exam.html?t=oge-kin-t1",
    "desc": "16 заданий формата ОГЭ, проверка по кнопке.",
    "status": "otkryto",
    "level": "baza",
@@ -223,7 +223,7 @@
    "classes": [
     9
    ],
-   "url": "/fizika-trenazhery/exam.html?t=oge-kin-t2",
+   "url": "/tezaurus/exam.html?t=oge-kin-t2",
    "desc": "16 заданий, 29 баллов, 5 попыток.",
    "status": "klass",
    "level": "baza",
@@ -246,7 +246,7 @@
     10,
     11
    ],
-   "url": "/fizika-trenazhery/inzh-blink.html",
+   "url": "/tezaurus/inzh-blink.html",
    "desc": "Период и частота из двух delay, вспышек в минуту, когда мигание сливается в ровный свет.",
    "status": "otkryto",
    "level": "baza",
@@ -265,7 +265,7 @@
     10,
     11
    ],
-   "url": "/fizika-trenazhery/inzh-shim.html",
+   "url": "/tezaurus/inzh-shim.html",
    "desc": "analogWrite 0–255, осциллограмма, среднее напряжение.",
    "status": "otkryto",
    "level": "baza",
@@ -284,7 +284,7 @@
     10,
     11
    ],
-   "url": "/fizika-trenazhery/inzh-svetodiod.html",
+   "url": "/tezaurus/inzh-svetodiod.html",
    "desc": "Подбор токоограничивающего резистора по ряду E12, мощность.",
    "status": "otkryto",
    "level": "baza",
@@ -303,7 +303,7 @@
     10,
     11
    ],
-   "url": "/fizika-trenazhery/inzh-ogni.html",
+   "url": "/tezaurus/inzh-ogni.html",
    "desc": "Массив выводов pins[], индексы с нуля, шаги цикла for, «сканер» туда-обратно, выход за границы массива.",
    "status": "otkryto",
    "level": "baza",
@@ -322,7 +322,7 @@
     10,
     11
    ],
-   "url": "/fizika-trenazhery/inzh-millis.html",
+   "url": "/tezaurus/inzh-millis.html",
    "desc": "millis() против delay(): два светодиода со своими периодами, совпадения через НОК, переполнение счётчика.",
    "status": "otkryto",
    "level": "baza",
@@ -341,7 +341,7 @@
     10,
     11
    ],
-   "url": "/fizika-trenazhery/inzh-rgb.html",
+   "url": "/tezaurus/inzh-rgb.html",
    "desc": "Сложение R, G, B, общий катод и общий анод (255 − x), цвет из монитора порта, байты и время передачи.",
    "status": "otkryto",
    "level": "baza",
@@ -360,7 +360,7 @@
     10,
     11
    ],
-   "url": "/fizika-trenazhery/inzh-7seg.html",
+   "url": "/tezaurus/inzh-7seg.html",
    "desc": "Сегменты a…g, код цифры битами (0b…), общий катод и анод, ток через общий вывод.",
    "status": "otkryto",
    "level": "baza",
@@ -381,7 +381,7 @@
     9,
     10
    ],
-   "url": "/fizika-trenazhery/uchebnik/dvizhenie-po-okruzhnosti.html"
+   "url": "/tezaurus/uchebnik/dvizhenie-po-okruzhnosti.html"
   },
   {
    "sub": "Движение по окружности",
@@ -413,7 +413,7 @@
    "classes": [
     10
    ],
-   "url": "/fizika-trenazhery/exam.html?t=dz-10fm-okruzhnost",
+   "url": "/tezaurus/exam.html?t=dz-10fm-okruzhnost",
    "groups": [
     "LC10FM"
    ],
@@ -434,7 +434,7 @@
     9,
     10
    ],
-   "url": "/fizika-trenazhery/trenazhery/strelki.html"
+   "url": "/tezaurus/trenazhery/strelki.html"
   },
   {
    "sub": "Движение по окружности",
@@ -451,7 +451,7 @@
     9,
     10
    ],
-   "url": "/fizika-trenazhery/trenazhery/prashcha.html"
+   "url": "/tezaurus/trenazhery/prashcha.html"
   },
   {
    "sub": "Движение по окружности",
@@ -467,7 +467,7 @@
    "classes": [
     10
    ],
-   "url": "/fizika-trenazhery/trenazhery/katushka.html"
+   "url": "/tezaurus/trenazhery/katushka.html"
   },
   {
    "sub": "Движение по окружности",
@@ -483,7 +483,7 @@
    "classes": [
     9
    ],
-   "url": "/fizika-trenazhery/exam.html?t=oge-okr-t2",
+   "url": "/tezaurus/exam.html?t=oge-okr-t2",
    "exam": {
     "oge": []
    },
@@ -503,7 +503,7 @@
    "classes": [
     10
    ],
-   "url": "/fizika-trenazhery/exam.html?t=ege-okr-t2",
+   "url": "/tezaurus/exam.html?t=ege-okr-t2",
    "exam": {
     "ege": []
    },
@@ -525,7 +525,7 @@
     10,
     11
    ],
-   "url": "/fizika-trenazhery/trenazhery/peredachi.html"
+   "url": "/tezaurus/trenazhery/peredachi.html"
   },
   {
    "id": "i-red-1-zachem",
@@ -633,7 +633,7 @@
     10
    ],
    "level": "baza",
-   "url": "/fizika-trenazhery/uchebnik/zakony-nyutona.html",
+   "url": "/tezaurus/uchebnik/zakony-nyutona.html",
    "desc": "Сила и масса, ИСО, три закона, силы в механике, вес и невесомость, классические ситуации; встроенные тренажёры и 18 задач с решениями."
   },
   {
@@ -650,7 +650,7 @@
     10
    ],
    "level": "baza",
-   "url": "/fizika-trenazhery/trenazhery/naklonnaya.html",
+   "url": "/tezaurus/trenazhery/naklonnaya.html",
    "desc": "Проекции сил, граница tg α = μ, задачи, игра «Что будет с бруском?»."
   },
   {
@@ -667,7 +667,7 @@
     10
    ],
    "level": "baza",
-   "url": "/fizika-trenazhery/trenazhery/bloki.html",
+   "url": "/tezaurus/trenazhery/bloki.html",
    "desc": "Ускорение, натяжение, сила на ось блока; игра «Подбери груз»."
   },
   {
@@ -683,7 +683,7 @@
     10
    ],
    "level": "star",
-   "url": "/fizika-trenazhery/trenazhery/doska.html",
+   "url": "/tezaurus/trenazhery/doska.html",
    "desc": "График ускорений от силы, порог проскальзывания, игра «Вместе или проскользнёт?»."
   },
   {
@@ -700,7 +700,7 @@
     10
    ],
    "level": "baza",
-   "url": "/fizika-trenazhery/uchebnik/sila-uprugosti.html",
+   "url": "/tezaurus/uchebnik/sila-uprugosti.html",
    "desc": "Напряжение и деформация, диаграммы растяжения, модуль Юнга, коэффициент Пуассона, соединения пружин, вязкоупругость, нити и связи; 6 тренажёров и 19 задач с решениями."
   },
   {
@@ -717,7 +717,7 @@
     10
    ],
    "level": "baza",
-   "url": "/fizika-trenazhery/trenazhery/pruzhiny.html",
+   "url": "/tezaurus/trenazhery/pruzhiny.html",
    "desc": "Последовательно, параллельно, смешанно; игра «Собери жёсткость»."
   },
   {
@@ -734,7 +734,7 @@
     10
    ],
    "level": "baza",
-   "url": "/fizika-trenazhery/trenazhery/provoloka.html",
+   "url": "/tezaurus/trenazhery/provoloka.html",
    "desc": "Напряжение, удлинение, подбор сечения; игра «Выдержит или порвётся?»."
   },
   {
@@ -750,7 +750,7 @@
     10
    ],
    "level": "star",
-   "url": "/fizika-trenazhery/trenazhery/nit.html",
+   "url": "/tezaurus/trenazhery/nit.html",
    "desc": "Жёсткость от мягкой пружины до нити, колебания и среднее натяжение; игра «Порвётся ли нить?»."
   }
  ]

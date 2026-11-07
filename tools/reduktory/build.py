@@ -10,7 +10,7 @@ import os, re
 H = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(H, '..', '..', 'inzheneriya', 'reduktory')
 SITE = 'https://metaphys23.github.io'
-LAD = [('Передачи вращения', SITE + '/fizika-trenazhery/trenazhery/peredachi.html'),
+LAD = [('Передачи вращения', SITE + '/tezaurus/trenazhery/peredachi.html'),
        ('1 · Зачем редуктор', 'zachem-reduktor.html'),
        ('2 · Многоступенчатый', 'mnogostupenchatyy.html'),
        ('3 · Червячный', 'chervyachnyy.html'),

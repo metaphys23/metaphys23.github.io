@@ -10,7 +10,7 @@ python3 tools/build.py --check  — только проверка (код воз
 import json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TREN = os.path.join(os.path.dirname(ROOT), 'fizika-trenazhery')  # клон соседнего репозитория (необязателен)
+TREN = os.path.join(os.path.dirname(ROOT), 'tezaurus')  # клон соседнего репозитория tezaurus (бывший fizika-trenazhery; необязателен)
 KINDS = {'pdf', 'trenazher', 't1', 't2', 't3', 'dz', 'konspekt', 'lab'}
 SECTIONS = {'uchebnik', 'praktikum', 'eksperiment', 'inzheneriya'}
 STATUS = {'otkryto', 'klass', 'proba'}
@@ -60,8 +60,8 @@ def check():
         if x.get('topic') not in topics: err.append(f'{i}: темы «{x.get("topic")}» нет в temy.json (сначала hub/темы.yaml)')
         if x.get('kind') in ('t1', 't2', 't3', 'dz') and not x.get('test'): err.append(f'{i}: тесту нужно поле test')
         u = x.get('url', '')
-        if u.startswith('/fizika-trenazhery/'):
-            p = os.path.join(TREN, u[len('/fizika-trenazhery/'):].split('?')[0])
+        if u.startswith('/tezaurus/'):
+            p = os.path.join(TREN, u[len('/tezaurus/'):].split('?')[0])
             if x.get('test'): p = os.path.join(TREN, 'tests', x['test'] + '.json')
             if os.path.isdir(TREN) and not os.path.exists(p): err.append(f'{i}: нет файла {p}')
         elif u.startswith('/'):

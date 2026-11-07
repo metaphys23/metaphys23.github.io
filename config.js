@@ -1,3 +1,3 @@
 // Адрес API кабинетов (Yandex API Gateway). Пусто — кабинеты показывают «сервер не настроен», сайт читается как обычно.
 // Заполняется после развёртывания (site/api/DEPLOY.md в репозитории AI).
-window.API_BASE = "";
+window.API_BASE = "https://d5dkdvp63pqmtmsk15r6.3rspsmhh.apigw.yandexcloud.net";

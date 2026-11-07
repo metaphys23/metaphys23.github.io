@@ -35,7 +35,7 @@ ul.mat a{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-ite
 ul.mat a:hover{border-color:var(--acc)}
 ul.mat small{grid-column:2/4;color:var(--ink-2);font-size:13.5px}
 .badge{font:700 11.5px/1 var(--mono);letter-spacing:.04em;padding:5px 7px;border-radius:6px;border:1px solid currentColor;white-space:nowrap}
-.k-pdf{color:var(--s6)}.k-trenazher{color:var(--s4)}.k-t1{color:var(--s1)}.k-t2,.k-t3{color:var(--s3)}.k-dz{color:var(--s5)}.k-konspekt{color:var(--s2)}.k-lab{color:var(--s4)}
+.k-pdf{color:var(--s6)}.k-trenazher{color:var(--s4)}.k-t1{color:var(--s1)}.k-t2,.k-t3{color:var(--s3)}.k-dz{color:var(--s5)}.k-konspekt{color:var(--s2)}.k-lab{color:var(--s4)}.k-prez{color:var(--s1)}
 .lvl{font-size:13px;color:var(--ink-2)}
 details.topic{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;margin:10px 0;padding:0 14px}
 details.topic>summary{cursor:pointer;padding:14px 0;font-weight:700;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:10px}

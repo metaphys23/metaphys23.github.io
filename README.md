@@ -15,3 +15,7 @@
 
 ## Код ученика
 `<ГРУППА>-XXXX`, например `LC10FM-K7P3`: школа + класс + группа, дефис, 4 знака без O/0/I/1. Хранится только на устройстве ученика; пока сервер коды не проверяет — проверяется формат и наличие группы. «Код → ФИО» — только у учителя.
+
+## 07.11.2026
+- Презентация «Вращательное движение» — `klass/10/kinematika/okruzhnost/prezentaciya-vrashchatelnoe-dvizhenie.html` (в каталоге — 9 и 10 класс, вид `prez`), листки ДЗ — `klass/9/kinematika/okruzhnost/dz-vrashchatelnoe-dvizhenie-9fm.pdf`, `klass/10/kinematika/okruzhnost/dz-vrashchatelnoe-dvizhenie-10m1.pdf`.
+- Новый вид материала `prez` («Презентация») — в `tools/build.py`, `assets/site.js`, `assets/site.css`.

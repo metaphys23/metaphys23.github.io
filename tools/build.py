@@ -11,7 +11,7 @@ import json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TREN = os.path.join(os.path.dirname(ROOT), 'tezaurus')  # клон соседнего репозитория tezaurus (бывший fizika-trenazhery; необязателен)
-KINDS = {'pdf', 'trenazher', 't1', 't2', 't3', 'dz', 'konspekt', 'lab'}
+KINDS = {'pdf', 'trenazher', 't1', 't2', 't3', 'dz', 'konspekt', 'lab', 'prez'}
 SECTIONS = {'uchebnik', 'praktikum', 'eksperiment', 'inzheneriya'}
 STATUS = {'otkryto', 'klass', 'proba'}
 CODE_GROUP = re.compile(r'^[A-Z]{2,3}\d{1,2}[A-Z]{0,3}$')

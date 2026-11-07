@@ -384,6 +384,23 @@
    "url": "/tezaurus/uchebnik/dvizhenie-po-okruzhnosti.html"
   },
   {
+   "id": "prez-vrashchenie",
+   "title": "Презентация: вращательное движение",
+   "kind": "prez",
+   "section": "uchebnik",
+   "topic": "кинематика",
+   "sub": "Движение по окружности",
+   "classes": [
+    9,
+    10
+   ],
+   "url": "/klass/10/kinematika/okruzhnost/prezentaciya-vrashchatelnoe-dvizhenie.html",
+   "desc": "Радиан и тригонометрия на окружности, ω, v = ωR, центростремительное ускорение тремя выводами, ε и aτ, задачи Б1–Б4 с решениями, тренажёры. На телефоне открывается лентой.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-07"
+  },
+  {
    "sub": "Движение по окружности",
    "desc": "",
    "status": "otkryto",
@@ -398,6 +415,38 @@
     10
    ],
    "url": "/klass/10/kinematika/okruzhnost/dz-dvizhenie-po-okruzhnosti.pdf"
+  },
+  {
+   "id": "pdf-dz-vrashchenie-9",
+   "title": "Листок ДЗ: вращательное движение, 25 задач",
+   "kind": "pdf",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": "Движение по окружности",
+   "classes": [
+    9
+   ],
+   "url": "/klass/9/kinematika/okruzhnost/dz-vrashchatelnoe-dvizhenie-9fm.pdf",
+   "desc": "Часть А — задачи формата ОГЭ, часть Б — уровень Замятина и Турчиной, часть В — олимпиадные. Ответы — вверх ногами под задачей.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-07"
+  },
+  {
+   "id": "pdf-dz-vrashchenie-10",
+   "title": "Листок ДЗ: вращательное движение, 28 задач",
+   "kind": "pdf",
+   "section": "praktikum",
+   "topic": "кинематика",
+   "sub": "Движение по окружности",
+   "classes": [
+    10
+   ],
+   "url": "/klass/10/kinematika/okruzhnost/dz-vrashchatelnoe-dvizhenie-10m1.pdf",
+   "desc": "Часть А — задачи формата ЕГЭ, часть Б — уровень Замятина и Турчиной, часть В — Савченко и олимпиадные. Ответы — вверх ногами под задачей.",
+   "status": "otkryto",
+   "level": "baza",
+   "added": "2026-11-07"
   },
   {
    "sub": "Движение по окружности",
